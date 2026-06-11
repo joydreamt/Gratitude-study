@@ -651,12 +651,11 @@
      SCREEN 13: Measures placeholder
 ══════════════════════════════════════════ -->
 <div class="overlay hidden" id="screen-13">
-  <div class="overlay-title">Almost done!</div>
+  <div class="overlay-title">✓ Simulation Complete</div>
   <div class="overlay-sub">
-    Thank you. Please answer a few final questions about your experience in the simulation.<br><br>
-    <em style="color:#ababad;">[Qualtrics measure blocks follow here]</em>
+    Thank you for participating in the simulation.<br><br>
+    Please click the <strong style="color:#fff;">"→" (Next) button below the simulation</strong> to continue to the final questions.
   </div>
-  <button class="btn" onclick="finishExperiment()">Go to Survey →</button>
 </div>
 
 
@@ -1056,7 +1055,7 @@ function switchChannel(ch) {
   if (allMsgsDone && ch === requiredCh && !autoOopsTimer) {
     autoOopsTimer = setTimeout(function() {
       if (allMsgsDone) triggerOops();
-    }, 10000);
+    }, 15000);
   }
 
   // Clear badge
@@ -1084,12 +1083,7 @@ function triggerOops() {
   typingRow.classList.add('visible');
   setTimeout(function() {
     typingRow.classList.remove('visible');
-    // update oops text with actual leader name
-    var oopsEl = document.getElementById('oops-text');
-    if (oopsEl) oopsEl.textContent = '[' + leaderName + '] accidentally exited the ChatBox, and the chat cannot be continued.';
-    var aiEl = document.getElementById('ai-eval-text');
-    if (aiEl) aiEl.textContent = 'Our system is analyzing ' + leaderName + '\'s messages and team interaction…';
-    go(11);
+    go(13); // skip oops + AI eval, go straight to complete
   }, 2000);
 }
 
@@ -1105,7 +1099,7 @@ function runMessages(msgs, idx) {
     if (activeChannel === requiredCh) {
       autoOopsTimer = setTimeout(function() {
         if (allMsgsDone) triggerOops();
-      }, 10000);
+      }, 15000);
     }
     // 아니면 switchChannel에서 타이머 시작
     return;
@@ -1226,11 +1220,7 @@ function saveEmbedded(key, value) {
   try { console.log('sim_data:', key, '=', value); } catch(e) {}
 }
 
-function finishExperiment() {
-  // Redirect back to Qualtrics survey for measures
-  // REPLACE this URL with your actual Qualtrics continue link:
-  window.location.href = "QUALTRICS_RETURN_URL";
-}
+function finishExperiment() { /* iframe mode: use Qualtrics Next button */ }
 
 // ── chat input key handler ──
 var allMsgsDone = false;
@@ -1268,7 +1258,7 @@ function handleChatKey(e) {
   if (allMsgsDone && activeChannel === requiredChannel) {
     allMsgsDone = false;
     if (autoOopsTimer) { clearTimeout(autoOopsTimer); autoOopsTimer = null; }
-    triggerOops();
+    setTimeout(function() { triggerOops(); }, 5000);
   }
 }
 
