@@ -806,12 +806,34 @@ function startIntroChat() {
     setTimeout(() => { hideTyping(); pushTeamMsg(m); }, m.delay);
   });
 
-  // Unlock input right after leader's own intro (delay 8000 + a beat)
+  // Input always open from start
   setTimeout(() => {
     const input = document.getElementById('intro-chat-input');
     input.placeholder = 'Message #project-team';
     input.focus();
-  }, 9000);
+  }, 100);
+
+  // After peer2 finishes (15000ms), if user already sent → trigger leader response now
+  setTimeout(() => {
+    if (participantSent) triggerLeaderResponse();
+    else peersAllDone = true; // flag so next user send triggers immediately
+  }, 15500);
+
+  let peersAllDone = false;
+
+  function triggerLeaderResponse() {
+    setTimeout(() => { showTyping(leaderName); }, 1200);
+    setTimeout(() => {
+      hideTyping();
+      pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `great! love the energy 🙌` });
+    }, 2800);
+    setTimeout(() => { showTyping(leaderName); }, 5000);
+    setTimeout(() => {
+      hideTyping();
+      pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `alright, let's get to work — I'm sending each of you your assignment via DM now` });
+      setTimeout(sendAssignmentDM, 2500);
+    }, 7000);
+  }
 
   window.handleIntroKey = function(e) {
     if (e.key !== 'Enter') return;
@@ -831,22 +853,11 @@ function startIntroChat() {
     input.value = '';
     input.placeholder = 'Message ' + (introActiveCh === 'team' ? '#project-team' : leaderName);
 
-    // Trigger leader reaction only once, on team channel
+    // Trigger leader reaction only once, on team channel, and only after peers are done
     if (!participantSent && introActiveCh === 'team') {
       participantSent = true;
-
-      setTimeout(() => { showTyping(leaderName); }, 1200);
-      setTimeout(() => {
-        hideTyping();
-        pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `great! love the energy 🙌` });
-      }, 2800);
-      setTimeout(() => { showTyping(leaderName); }, 5000);
-      setTimeout(() => {
-        hideTyping();
-        pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `alright, let's get to work — I'm sending each of you your assignment via DM now` });
-        // Delay then send DM with task link
-        setTimeout(sendAssignmentDM, 2500);
-      }, 7000);
+      if (peersAllDone) triggerLeaderResponse();
+      // else: peersAllDone timeout will call triggerLeaderResponse when it fires
     }
   };
 }
