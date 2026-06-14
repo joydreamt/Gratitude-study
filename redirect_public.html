@@ -1186,13 +1186,6 @@ function handleManipKey(e) {
     renderManipMsg({ author: username, avClass: 'av-you', isYou: true, text });
     input.value = '';
   }
-  const reqCh = CONDITION === 'public' ? 'team' : 'leader';
-  if (allManipMsgsDone && activeChannel === reqCh) {
-    inputUnlocked = false;
-    document.getElementById('manip-chat-input').disabled = true;
-    if (autoOopsTimer) { clearTimeout(autoOopsTimer); autoOopsTimer = null; }
-    setTimeout(triggerOops, 5000);
-  }
 }
 
 function triggerOops() {
