@@ -1017,7 +1017,9 @@ function startManipulation() {
   document.getElementById('sb-team').classList.add('active');
   updateManipHeader('team');
   document.getElementById('manip-messages').innerHTML = '';
-  document.getElementById('manip-chat-input').disabled = true;
+  const manipInput = document.getElementById('manip-chat-input');
+  manipInput.disabled = false;
+  inputUnlocked = true;
 
   runManipMessages(getManipMessages(), 0);
 }
@@ -1071,8 +1073,7 @@ function runManipMessages(msgs, idx) {
   const tl = document.getElementById('manip-typing-label');
   if (idx >= msgs.length) {
     tr.classList.remove('visible');
-    allManipMsgsDone = true; inputUnlocked = true;
-    document.getElementById('manip-chat-input').disabled = false;
+    allManipMsgsDone = true;
     document.getElementById('manip-chat-input').focus();
     const reqCh = CONDITION === 'public' ? 'team' : 'leader';
     if (activeChannel === reqCh) autoOopsTimer = setTimeout(triggerOops, 15000);
