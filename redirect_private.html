@@ -3,1275 +3,1217 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jones & Jones — Team Simulation</title>
+<title>Jones &amp; Jones — Team Simulation</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #ffffff;
-    color: #d1d2d3;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f0f0f5;
+  color: #1d1c1d;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  /* ── SLACK SHELL ── */
-  .slack-shell {
-    width: 800px;
-    height: 500px;
-    background: #1a1d21;
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-    border: 1px solid #2c2d30;
-  }
+/* ── OVERLAY SCREENS ── */
+.overlay {
+  position: fixed; inset: 0; background: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 300; gap: 20px; padding: 40px;
+}
+.overlay.hidden { display: none; }
+.overlay-title { font-size: 22px; font-weight: 700; color: #1d1c1d; text-align: center; }
+.overlay-sub { font-size: 14px; color: #6e6e73; text-align: center; max-width: 640px; line-height: 1.6; }
 
-  /* Sidebar */
-  .sidebar {
-    width: 220px;
-    background: #19171d;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    border-right: 1px solid #2c2d30;
-  }
-  .sidebar-header {
-    padding: 16px 16px 12px;
-    border-bottom: 1px solid #2c2d30;
-  }
-  .workspace-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -.2px;
-  }
-  .workspace-status {
-    font-size: 11px;
-    color: #ababad;
-    margin-top: 2px;
-  }
-  .sidebar-section {
-    padding: 16px 8px 4px;
-  }
-  .sidebar-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #ababad;
-    text-transform: uppercase;
-    letter-spacing: .6px;
-    padding: 0 8px;
-    margin-bottom: 4px;
-  }
-  .channel-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 13px;
-    color: #ababad;
-    cursor: pointer;
-  }
-  .channel-item.active {
-    background: #1164a3;
-    color: #fff;
-  }
-  .channel-item .notif-badge {
-    margin-left: auto;
-    background: #cd2553;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 8px;
-    padding: 1px 6px;
-    min-width: 16px;
-    text-align: center;
-    display: none;
-  }
-  .channel-item .notif-badge.show { display: block; }
-  .channel-item.clickable { cursor: pointer; }
-  .channel-item.clickable:hover { background: rgba(255,255,255,.06); }
-    border-radius: 50%;
-    background: #2bac76;
-    flex-shrink: 0;
-  }
-  .channel-item .dot.offline { background: transparent; border: 1.5px solid #ababad; }
+/* Intro card */
+.intro-card {
+  background: #f7f8fa; border: 1px solid #e5e5ea; border-radius: 12px;
+  padding: 32px 40px; max-width: 580px; width: 100%;
+  line-height: 1.7; font-size: 14px; color: #3a3a3c;
+}
+.intro-card p { margin-bottom: 12px; }
+.intro-card p:last-child { margin-bottom: 0; }
 
-  /* Main chat */
-  .chat-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #222529;
-  }
-  .chat-header {
-    padding: 12px 20px;
-    border-bottom: 1px solid #2c2d30;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #222529;
-  }
-  .chat-header-icon {
-    font-size: 16px;
-    color: #ababad;
-  }
-  .chat-header-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-  }
-  .chat-header-members {
-    font-size: 12px;
-    color: #ababad;
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .member-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: #2bac76;
-  }
+/* Username */
+.input-group { display: flex; flex-direction: column; gap: 8px; width: 440px; }
+.input-group label { font-size: 13px; color: #6e6e73; font-weight: 500; }
+.input-group input {
+  background: #f7f8fa; border: 1px solid #d1d1d6; border-radius: 6px;
+  padding: 10px 14px; font-size: 14px; color: #1d1c1d; outline: none; width: 100%;
+  transition: border-color .15s;
+}
+.input-group input:focus { border-color: #1164a3; }
+.input-hint { font-size: 11px; color: #8e8e93; }
 
-  /* Messages area */
-  .messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 20px 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .msg-row {
-    display: flex;
-    gap: 10px;
-    padding: 4px 0;
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity .3s ease, transform .3s ease;
-  }
-  .msg-row.visible { opacity: 1; transform: translateY(0); }
+/* Login card */
+.login-card {
+  background: #f7f8fa; border: 1px solid #e5e5ea; border-radius: 10px;
+  padding: 24px 32px; width: 360px; display: flex; flex-direction: column; gap: 14px;
+}
+.login-field { display: flex; flex-direction: column; gap: 5px; }
+.login-field label { font-size: 12px; font-weight: 600; color: #6e6e73; text-transform: uppercase; letter-spacing: .4px; }
+.login-field input { background: #fff; border: 1px solid #d1d1d6; border-radius: 6px; padding: 9px 12px; font-size: 14px; color: #1d1c1d; outline: none; }
 
-  .avatar {
-    width: 34px; height: 34px;
-    border-radius: 4px;
-    background: #4a154b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .avatar.peer { background: #1164a3; }
-  .avatar.peer2 { background: #2bac76; color: #000; }
+/* Loading */
+.loading-wrap { width: 440px; }
+.loading-track { height: 6px; background: #e0e0e5; border-radius: 3px; overflow: hidden; }
+.loading-fill { height: 100%; background: #007aff; border-radius: 3px; width: 0%; transition: width .08s linear; }
+.loading-label { font-size: 12px; color: #6e6e73; margin-top: 8px; text-align: center; }
 
-  .msg-body { flex: 1; }
-  .msg-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin-bottom: 2px;
-  }
-  .msg-author {
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-  }
-  .msg-author .badge {
-    font-size: 10px;
-    font-weight: 600;
-    background: #4a154b;
-    color: #e8d0e8;
-    padding: 1px 5px;
-    border-radius: 3px;
-    margin-left: 4px;
-    vertical-align: middle;
-  }
-  .msg-time {
-    font-size: 11px;
-    color: #ababad;
-  }
-  .msg-text {
-    font-size: 14px;
-    line-height: 1.5;
-    color: #d1d2d3;
-  }
-  .msg-text .mention {
-    color: #1d9bd1;
-    background: rgba(29,155,209,.1);
-    border-radius: 3px;
-    padding: 0 2px;
-  }
+/* Buttons */
+.btn {
+  background: #007aff; color: #fff; border: none; border-radius: 6px;
+  padding: 10px 28px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .15s;
+}
+.btn:hover { background: #0066d6; }
+.btn:disabled { background: #c7c7cc; cursor: not-allowed; opacity: 0.7; }
 
-  /* Typing indicator */
-  .typing-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 4px 0;
-    opacity: 0;
-    transition: opacity .2s;
-    min-height: 28px;
-  }
-  .typing-row.visible { opacity: 1; }
-  .typing-dots {
-    display: flex;
-    gap: 3px;
-    align-items: center;
-    margin-left: 44px;
-  }
-  .typing-dots span {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: #ababad;
-    animation: bounce .9s infinite ease-in-out;
-  }
-  .typing-dots span:nth-child(2) { animation-delay: .15s; }
-  .typing-dots span:nth-child(3) { animation-delay: .3s; }
-  @keyframes bounce {
-    0%,60%,100% { transform: translateY(0); }
-    30% { transform: translateY(-4px); }
-  }
-  .typing-label {
-    font-size: 12px;
-    color: #ababad;
-    margin-left: 6px;
-  }
+/* Role table */
+.role-table { width: 540px; border-collapse: collapse; font-size: 13px; }
+.role-table th {
+  text-align: left; padding: 8px 14px;
+  font-size: 11px; font-weight: 700; color: #6e6e73; text-transform: uppercase; letter-spacing: .4px;
+  border-bottom: 2px solid #e5e5ea;
+}
+.role-table td { padding: 10px 14px; color: #1d1c1d; border-bottom: 1px solid #f0f0f5; }
+.role-table tr.you-row td { background: #f0f7ff; font-weight: 600; }
+.role-badge { display: inline-block; background: #e8f0fb; color: #1164a3; border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 600; }
+.role-note { font-size: 12px; color: #6e6e73; max-width: 540px; line-height: 1.6; text-align: left; }
 
-  /* Peer reactions */
-  .reaction-row {
-    display: flex;
-    gap: 6px;
-    margin-top: 6px;
-  }
-  .reaction-chip {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 12px;
-    color: #d1d2d3;
-  }
+/* Task card */
+.task-card {
+  background: #f7f8fa; border: 1px solid #e5e5ea; border-radius: 10px;
+  padding: 28px 36px; max-width: 600px; width: 100%;
+  text-align: left; font-size: 13.5px; color: #3a3a3c; line-height: 1.75;
+}
+.task-card h3 { font-size: 15px; color: #1d1c1d; margin-bottom: 16px; }
+.task-card p { margin-bottom: 16px; }
+.task-card ul { padding-left: 20px; margin-bottom: 16px; }
+.task-card li { margin-bottom: 6px; }
 
-  /* Input bar (decorative) */
-  .chat-input-bar {
-    padding: 12px 20px;
-    border-top: 1px solid #2c2d30;
-  }
-  .input-fake {
-    background: #2c2d30;
-    border-radius: 6px;
-    padding: 9px 14px;
-    font-size: 13px;
-    color: #ababad;
-    border: 1px solid #3c3d40;
-  }
+/* ── CHATBOX SHELL ── */
+.slack-shell {
+  width: 820px; height: 520px;
+  background: #1a1d21;
+  border-radius: 10px; overflow: hidden; display: flex;
+  box-shadow: 0 8px 40px rgba(0,0,0,.55);
+  border: 1px solid #2c2d30;
+}
 
-  /* ── OVERLAY SCREENS ── */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 300;
-    gap: 20px;
-    padding: 40px;
-  }
-  .overlay.hidden { display: none; }
+/* Sidebar */
+.sidebar {
+  width: 230px; background: #19171d;
+  display: flex; flex-direction: column; flex-shrink: 0;
+  border-right: 1px solid #2c2d30;
+}
+.sidebar-header { padding: 16px 16px 12px; border-bottom: 1px solid #2c2d30; }
+.workspace-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.2px; }
+.workspace-status { font-size: 11px; color: #ababad; margin-top: 2px; }
+.sidebar-section { padding: 16px 8px 4px; }
+.sidebar-label { font-size: 11px; font-weight: 700; color: #ababad; text-transform: uppercase; letter-spacing: .6px; padding: 0 8px; margin-bottom: 4px; }
+.channel-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 8px; border-radius: 4px; font-size: 13px; color: #ababad;
+  cursor: pointer; user-select: none;
+}
+.channel-item.active { background: #1164a3; color: #fff; }
+.channel-item:hover:not(.active) { background: rgba(255,255,255,.06); color: #fff; }
+.channel-item .notif-badge {
+  margin-left: auto; background: #cd2553; color: #fff;
+  font-size: 10px; font-weight: 700; border-radius: 8px;
+  padding: 1px 6px; min-width: 16px; text-align: center; display: none;
+}
+.channel-item .notif-badge.show { display: block; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #2bac76; flex-shrink: 0; }
+.dot.offline { background: transparent; border: 1.5px solid #ababad; }
 
-  .overlay-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1d1c1d;
-    text-align: center;
-  }
-  .overlay-sub {
-    font-size: 14px;
-    color: #6e6e73;
-    text-align: center;
-    max-width: 640px;
-    line-height: 1.6;
-  }
+/* Chat area — dark (original Slack style) */
+.chat-main { flex: 1; display: flex; flex-direction: column; background: #222529; }
+.chat-header {
+  padding: 12px 20px; border-bottom: 1px solid #2c2d30;
+  display: flex; align-items: center; gap: 8px; background: #222529; flex-shrink: 0;
+}
+.chat-header-icon { font-size: 16px; color: #ababad; }
+.chat-header-name { font-size: 15px; font-weight: 700; color: #fff; }
+.chat-header-members { font-size: 12px; color: #ababad; margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.member-dot { width: 6px; height: 6px; border-radius: 50%; background: #2bac76; }
 
-  /* Loading bar */
-  .loading-wrap { width: 440px; }
-  .loading-track {
-    height: 6px;
-    background: #e0e0e5;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .loading-fill {
-    height: 100%;
-    background: #007aff;
-    border-radius: 3px;
-    width: 0%;
-    transition: width .08s linear;
-  }
-  .loading-label {
-    font-size: 12px;
-    color: #ababad;
-    margin-top: 8px;
-    text-align: center;
-  }
+/* Messages */
+.messages { flex: 1; overflow-y: auto; padding: 20px 20px 8px; display: flex; flex-direction: column; gap: 0; }
+.msg-row {
+  display: flex; gap: 10px; padding: 4px 0;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.msg-row.visible { opacity: 1; transform: translateY(0); }
 
-  /* Username input */
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 440px;
-  }
-  .input-group label {
-    font-size: 13px;
-    color: #6e6e73;
-  }
-  .input-group input {
-    background: #f7f8fa;
-    border: 1px solid #d1d1d6;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 14px;
-    color: #1d1c1d;
-    outline: none;
-    width: 100%;
-  }
-  .input-group input:focus { border-color: #1164a3; }
-  .input-hint {
-    font-size: 11px;
-    color: #8e8e93;
-  }
+.avatar {
+  width: 34px; height: 34px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+  flex-shrink: 0; margin-top: 2px;
+}
+.avatar.av-leader { background: #4a154b; }
+.avatar.av-peer1  { background: #1164a3; }
+.avatar.av-peer2  { background: #2bac76; color: #000; }
+.avatar.av-you    { background: #5c3d8a; }
 
-  .btn {
-    background: #007aff;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 28px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .btn:hover { background: #0066d6; }
-  .btn:disabled { background: #3c3d40; cursor: not-allowed; }
+.msg-body { flex: 1; min-width: 0; }
+.msg-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.msg-author { font-size: 13px; font-weight: 700; color: #fff; }
+.msg-author .badge {
+  font-size: 10px; font-weight: 600;
+  padding: 1px 5px; border-radius: 3px; margin-left: 4px; vertical-align: middle;
+}
+.badge-leader { background: #3d1a00; color: #fb923c; }
+.badge-member { background: #0f2d48; color: #7dd3fc; }
+.badge-you    { background: #3a2060; color: #d8b4fe; }
+.msg-time { font-size: 11px; color: #ababad; }
+.msg-text { font-size: 14px; line-height: 1.5; color: #d1d2d3; }
+.msg-text .mention { color: #1d9bd1; background: rgba(29,155,209,.1); border-radius: 3px; padding: 0 2px; }
 
-  /* Participant list */
-  .participant-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 440px;
-  }
-  .participant-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #f7f8fa;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: #1d1c1d;
-    opacity: 0;
-    transform: translateX(-8px);
-    transition: opacity .3s, transform .3s;
-  }
-  .participant-row.show { opacity: 1; transform: translateX(0); }
-  .p-dot { width: 8px; height: 8px; border-radius: 50%; background: #2bac76; flex-shrink: 0; }
+/* Task link in DM */
+.task-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(29,155,209,.12); border: 1px solid rgba(29,155,209,.4);
+  border-radius: 6px; padding: 8px 14px; margin-top: 6px;
+  font-size: 13px; font-weight: 600; color: #1d9bd1;
+  cursor: pointer; text-decoration: none; transition: background .15s;
+}
+.task-link:hover { background: rgba(29,155,209,.22); }
+.task-link-icon { font-size: 15px; }
 
-  /* Role badge */
-  .role-card {
-    background: #f7f8fa;
-    border-radius: 8px;
-    padding: 20px 28px;
-    text-align: center;
-    width: 320px;
-  }
-  .role-title { font-size: 13px; color: #6e6e73; margin-bottom: 6px; }
-  .role-name { font-size: 24px; font-weight: 700; color: #1d1c1d; }
-  .role-sub { font-size: 13px; color: #6e6e73; margin-top: 4px; }
+/* Reactions */
+.reaction-row { display: flex; gap: 6px; margin-top: 6px; }
+.reaction-chip {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 4px; padding: 2px 7px; font-size: 12px; color: #d1d2d3;
+  opacity: 0; transition: opacity .3s;
+}
+.reaction-chip.show { opacity: 1; }
 
-  /* Oops screen */
-  .oops-icon { font-size: 48px; }
+/* Typing */
+.typing-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 20px; opacity: 0; transition: opacity .2s;
+  min-height: 28px; flex-shrink: 0;
+}
+.typing-row.visible { opacity: 1; }
+.typing-dots { display: flex; gap: 3px; align-items: center; }
+.typing-dots span {
+  width: 6px; height: 6px; border-radius: 50%; background: #ababad;
+  animation: bounce .9s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: .15s; }
+.typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-4px)} }
+.typing-label { font-size: 12px; color: #ababad; margin-left: 6px; }
 
-  /* Condition selector (dev only) */
-  .dev-bar {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    display: flex;
-    gap: 6px;
-    z-index: 200;
-  }
-  .dev-btn {
-    background: #2c2d30;
-    color: #ababad;
-    border: 1px solid #3c3d40;
-    border-radius: 4px;
-    padding: 4px 10px;
-    font-size: 11px;
-    cursor: pointer;
-  }
-  .dev-btn.active { background: #1164a3; color: #fff; border-color: #1164a3; }
+/* Chat input */
+.chat-input-bar { padding: 10px 20px 14px; border-top: 1px solid #2c2d30; flex-shrink: 0; }
+.chat-input-bar input {
+  width: 100%; background: #2c2d30; border: 1px solid #3c3d40;
+  border-radius: 6px; padding: 9px 14px; font-size: 13px; color: #fff; outline: none;
+}
+.chat-input-bar input:focus { border-color: #1164a3; }
+.chat-input-bar input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+
+/* char counter */
+#char-count { font-size: 12px; color: #8e8e93; }
+
+/* ── TASK MODAL ANIMATION ── */
+#screen-7 { background: rgba(0,0,0,0); transition: background .35s ease; }
+#screen-7.modal-bg { background: rgba(0,0,0,.45); }
+.task-modal-wrap {
+  background: #fff;
+  border-radius: 14px;
+  padding: 40px 48px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  opacity: 0;
+  transform: scale(.94) translateY(16px);
+  transition: opacity .3s ease, transform .3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.task-modal-wrap.modal-in {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 1: Disclaimer
-══════════════════════════════════════════ -->
-
-
-<!-- ══════════════════════════════════════════
-     SCREEN 2: Simulation intro
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-2">
+<!-- ══ SCREEN 1 — Intro ══ -->
+<div class="overlay" id="screen-1">
   <div class="overlay-title">Simulation Introduction</div>
-  <div class="overlay-sub" style="max-width:560px;">
-    You will be connected with <strong style="color:#1d1c1d;font-weight:700">three other participants</strong> and play employees of a project team at <strong style="color:#1d1c1d;font-weight:700">Jones &amp; Jones</strong>.<br><br>
-    One member will be assigned as <strong style="color:#1d1c1d;font-weight:700">Project Team Manager</strong>; the remaining three are <strong style="color:#1d1c1d;font-weight:700">Project Team Members</strong>.<br><br>
-    In the first round, one team member (guided by the manager) will create marketing taglines for a team pitch.
-    In the second round, the other two members answer questions based on that pitch.<br><br>
-    <strong style="color:#1d1c1d;font-weight:700">Bonus:</strong> Team members can earn an extra reward based on second-round accuracy.
+  <div class="intro-card">
+    <p>You will be connected with <strong style="color:#1d1c1d">three other participants</strong> to form a project team at <strong style="color:#1d1c1d">Jones &amp; Jones</strong>, a marketing agency.</p>
+
+    <p>One participant will be assigned the role of <strong style="color:#1d1c1d">Project Team Leader</strong>; the remaining three will serve as <strong style="color:#1d1c1d">Project Team Members</strong>.</p>
+
+    <p>In the first phase, one team member will create marketing taglines for a product pitch under the leader's guidance. In the second phase, the remaining members will answer questions based on that pitch.</p>
+
+    <p style="margin-bottom:0"><strong style="color:#1d1c1d">Performance Bonus:</strong> Team members may earn an additional reward based on their accuracy in the second phase.</p>
   </div>
-  <button class="btn" onclick="go(4)">Continue →</button>
+  <button class="btn" onclick="go(2)">Continue →</button>
 </div>
 
-
-
-<!-- ══════════════════════════════════════════
-     SCREEN 4: Username
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-4">
+<!-- ══ SCREEN 2 — Username ══ -->
+<div class="overlay hidden" id="screen-2">
   <div class="overlay-title">Create Your Username</div>
+  <div class="overlay-sub" style="margin-bottom:4px;">Please set up a username before proceeding. This identifier will be visible to other participants throughout the session.</div>
   <div class="input-group">
-    <label>Your username for this simulation</label>
+    <label>Username</label>
     <div style="display:flex;gap:8px;align-items:center;">
-      <input type="text" id="username-input" maxlength="12"
-             style="flex:1;"
+      <input type="text" id="username-input" maxlength="12" style="flex:1;"
              oninput="this.value=this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase()">
       <button class="btn" style="padding:8px 14px;font-size:12px;white-space:nowrap;" onclick="generateUsername()">Randomize</button>
     </div>
-    <span class="input-hint">Auto-generated · You may change it · No spaces or special characters</span>
+    <span class="input-hint">Alphanumeric characters only · Auto-generated · Editable</span>
     <span id="username-error" style="font-size:12px;color:#e8912d;min-height:16px;"></span>
   </div>
-  <button class="btn" onclick="setUsername()">Join Simulation →</button>
+  <button class="btn" onclick="setUsername()">Continue →</button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 5: Fake pairing
-══════════════════════════════════════════ -->
+<!-- ══ SCREEN 3 — ChatBox Login ══ -->
+<div class="overlay hidden" id="screen-3">
+  <div class="overlay-title">ChatBox Login</div>
+  <div class="overlay-sub">You will be using <strong style="color:#1d1c1d">ChatBox</strong> — the team communication platform — throughout this session. Please log in using the credentials provided below.</div>
+  <div class="login-card">
+    <div class="login-field"><label>Username</label><input type="text" id="cb-username" readonly></div>
+    <div class="login-field"><label>Password</label><input type="text" value="123456" readonly></div>
+  </div>
+  <button class="btn" onclick="go(4)">Log In →</button>
+</div>
+
+<!-- ══ SCREEN 4 — Fake Pairing ══ -->
+<div class="overlay hidden" id="screen-4">
+  <div class="overlay-title" id="pairing-title">Connecting you with other participants…</div>
+  <div class="overlay-sub" style="font-size:12px;">Please wait while all participants join the session.</div>
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0;width:440px;margin-top:8px;" id="pair-list"></div>
+  <div style="margin-top:10px;font-size:13px;color:#6e6e73;" id="pairing-count">0 / 4 connected</div>
+</div>
+
+<!-- ══ SCREEN 5 — Role Assignment ══ -->
 <div class="overlay hidden" id="screen-5">
-  <div class="overlay-title" id="pairing-title">Looking for other participants…</div>
-  <div class="loading-wrap">
-    <div class="loading-track"><div class="loading-fill" id="pair-bar"></div></div>
-    <div class="loading-label" id="pairing-count">0 / 4 connected</div>
-  </div>
-  <div class="overlay-sub" style="font-size:12px;margin-top:8px;">This may take 1–3 minutes depending on participant availability.</div>
+  <div class="overlay-title">All Participants Connected</div>
+  <div class="overlay-sub" style="margin-bottom:4px;">The following roles have been assigned for today's session.</div>
+  <table class="role-table">
+    <thead><tr><th>Participant</th><th>Role</th><th>Title</th></tr></thead>
+    <tbody id="role-tbody"></tbody>
+  </table>
+  <div class="role-note" id="role-note"></div>
+  <button class="btn" onclick="go('5b')">Continue →</button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 6: Connected + role assignment
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-6">
-  <div class="overlay-title">Connected!</div>
-  <div class="participant-list" id="participant-list"></div>
-  <div id="role-reveal" class="hidden" style="margin-top:12px;text-align:center;">
-    <div class="role-card">
-      <div class="role-title">Your assigned role</div>
-      <div class="role-name">Project Team Member</div>
-      <div class="role-sub">Role 2 · Jones &amp; Jones</div>
+<!-- ══ SCREEN 5b — Your Role Card ══ -->
+<div class="overlay hidden" id="screen-5b">
+  <div style="text-align:center;margin-bottom:8px;">
+    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#8e8e93;">Your Role</span>
+  </div>
+  <div style="
+    background:#fff;
+    border:1px solid #e5e5ea;
+    border-radius:16px;
+    padding:48px 56px;
+    width:520px;
+    text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.07);
+  ">
+    <div style="
+      display:inline-flex;align-items:center;gap:8px;
+      background:#0f2d48;color:#7dd3fc;
+      border-radius:6px;padding:4px 14px;
+      font-size:12px;font-weight:700;letter-spacing:.3px;
+      margin-bottom:24px;
+    ">Member</div>
+
+    <div style="font-size:30px;font-weight:800;color:#1d1c1d;margin-bottom:6px;letter-spacing:-.5px;">
+      Project Team Member
     </div>
-    <button class="btn" style="margin-top:16px" onclick="go(7)">Continue →</button>
-  </div>
-</div>
+    <div style="font-size:15px;color:#6e6e73;margin-bottom:32px;">
+      Role 2 · Jones &amp; Jones
+    </div>
 
-
-
-<!-- ══════════════════════════════════════════
-     SCREEN 7: Task — business report summary
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-7">
-  <div class="overlay-title">Your Task</div>
-  <div class="overlay-sub" style="max-width:560px;text-align:left;">
-    <strong style="color:#1d1c1d;font-weight:700">Background</strong><br>
-    Your team at Jones &amp; Jones is working on a marketing pitch for a new product called <strong style="color:#1d1c1d;font-weight:700">ARIA</strong> — a smart home device focused on sustainability, sleek design, and affordability.<br><br>
-    <strong style="color:#1d1c1d;font-weight:700">Your assignment:</strong><br>
-    You have been assigned the <strong style="color:#1d1c1d;font-weight:700">sustainability</strong> angle. Write <strong style="color:#1d1c1d;font-weight:700">2–3 taglines or slogans</strong> that highlight ARIA's eco-friendly features. Your contribution will be compiled into the team's pitch summary.<br><br>
-    <strong style="color:#1d1c1d;font-weight:700">Examples of what a tagline looks like:</strong><br>
-    · "Power your home. Protect the planet."<br>
-    · "Smart living, smaller footprint."<br><br>
-    <em style="color:#ababad;">Your manager will review the team's contributions before the final pitch.</em>
-  </div>
-  <div style="width:560px;">
-    <textarea id="report-input" rows="5" placeholder="Write your taglines here…"
-      oninput="updateCharCount()"
-      onpaste="event.preventDefault(); document.getElementById('report-error').textContent='Copy-paste is not allowed. Please type your response directly.'"
-      style="background:#f7f8fa;border:1px solid #d1d1d6;border-radius:6px;padding:10px 14px;font-size:13px;color:#1d1c1d;outline:none;resize:vertical;width:100%;line-height:1.6;"></textarea>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
-      <span id="report-error" style="font-size:12px;color:#e8912d;"></span>
-      <span id="char-count" style="font-size:12px;color:#ababad;">0 / 100</span>
+    <div style="
+      background:#f7f8fa;border-radius:10px;padding:20px 24px;
+      text-align:left;font-size:14px;color:#3a3a3c;line-height:1.8;
+    ">
+      <div style="margin-bottom:10px;">
+        📋 <strong style="color:#1d1c1d;">Your assignment:</strong> Write 2–3 marketing taglines for the <strong style="color:#1d1c1d;">Sustainability</strong> angle of the ARIA pitch.
+      </div>
+      <div style="margin-bottom:10px;">
+        👤 <strong style="color:#1d1c1d;">Reporting to:</strong> <span id="role-card-leader">—</span> <span style="font-size:11px;font-weight:600;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:3px;padding:1px 6px;margin-left:4px;">Leader</span>
+      </div>
+      <div>
+        🎯 <strong style="color:#1d1c1d;">Goal:</strong> Your taglines will be reviewed by your leader and compiled into the team's final pitch.
+      </div>
     </div>
   </div>
-  <button class="btn" id="submit-btn" onclick="submitReport()" disabled
-    style="opacity:0.4;cursor:not-allowed;">Submit →</button>
+  <button class="btn" style="margin-top:28px;" onclick="go(6)">Enter ChatBox →</button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 8: ChatBox login
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-8">
-  <div class="overlay-title">Log in to ChatBox</div>
-  <div class="input-group">
-    <label>Username</label>
-    <input type="text" id="cb-user" readonly style="color:#ababad;">
-    <label style="margin-top:8px">Password</label>
-    <input type="text" value="123456" readonly style="color:#ababad;">
-  </div>
-  <button class="btn" onclick="loginChatbox()">Log In →</button>
-</div>
-
-<!-- ══════════════════════════════════════════
-     SCREEN 9: Waiting for leader
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-9">
-  <div class="overlay-title">Please wait…</div>
-  <div class="loading-wrap">
-    <div class="loading-track"><div class="loading-fill" id="wait-bar"></div></div>
-  </div>
-  <div class="overlay-sub" id="wait-label">Your team leader is reviewing the materials and logging into the ChatBox.</div>
-  <div class="overlay-sub" style="font-size:12px;margin-top:4px;">Please be patient and DO NOT close this window.</div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     SCREEN 10: MANIPULATION — ChatBox
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-10">
-  <!-- Slack shell rendered here -->
+<!-- ══ SCREEN 6 — ChatBox Intro (team intro + DM assignment) ══ -->
+<div class="overlay hidden" id="screen-6" style="background:#fff;">
   <div class="slack-shell">
-
-    <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
         <div class="workspace-name">Jones &amp; Jones</div>
         <div class="workspace-status">● Active simulation</div>
       </div>
-
       <div class="sidebar-section">
         <div class="sidebar-label">Channels</div>
-        <div class="channel-item clickable" id="sb-general" onclick="switchChannel('general')"># general</div>
-        <div class="channel-item clickable" id="sb-team" onclick="switchChannel('team')"># project-team <span class="notif-badge" id="badge-team"></span></div>
+        <div class="channel-item clickable" id="intro-sb-team" onclick="introSwitch('team')"># project-team <span class="notif-badge" id="intro-badge-team"></span></div>
       </div>
-
       <div class="sidebar-section">
         <div class="sidebar-label">Direct Messages</div>
-        <div class="channel-item clickable" id="sb-jara" onclick="switchChannel('jara')">
-          <div class="dot"></div> <span id="sb-jara-name">—</span> <span class="notif-badge" id="badge-jara"></span>
+        <div class="channel-item clickable" id="intro-sb-leader" onclick="introSwitch('leader')">
+          <div class="dot"></div> <span id="intro-dm-leader">—</span>
+          <span class="notif-badge" id="intro-badge-leader"></span>
         </div>
-        <div class="channel-item clickable" id="sb-aliali" onclick="switchChannel('aliali')">
-          <div class="dot"></div> <span id="sb-aliali-name">—</span> <span class="notif-badge" id="badge-aliali"></span>
+        <div class="channel-item clickable" id="intro-sb-peer1" onclick="introSwitch('peer1')">
+          <div class="dot"></div> <span id="intro-dm-peer1">—</span>
         </div>
-        <div class="channel-item clickable" id="sb-pl" onclick="switchChannel('joy')">
-          <div class="dot"></div> <span id="sb-pl-name">—</span> <span class="notif-badge" id="badge-joy"></span>
+        <div class="channel-item clickable" id="intro-sb-peer2" onclick="introSwitch('peer2')">
+          <div class="dot"></div> <span id="intro-dm-peer2">—</span>
         </div>
       </div>
     </div>
-
-    <!-- Chat main -->
     <div class="chat-main">
       <div class="chat-header">
-        <span class="chat-header-icon" id="header-icon">#</span>
-        <span class="chat-header-name" id="header-name">project-team</span>
-        <div class="chat-header-members" id="header-members">
+        <span class="chat-header-icon" id="intro-header-icon">#</span>
+        <span class="chat-header-name" id="intro-header-name">project-team</span>
+        <div class="chat-header-members" id="intro-header-members">
           <div class="member-dot"></div> 4 members online
         </div>
       </div>
-
-      <div class="messages" id="messages"></div>
-
-      <div class="typing-row" id="typing-row">
-        <div class="typing-dots">
-          <span></span><span></span><span></span>
-        </div>
-        <span class="typing-label" id="typing-label"></span>
+      <div class="messages" id="intro-messages"></div>
+      <div class="typing-row" id="intro-typing">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+        <span class="typing-label" id="intro-typing-label"></span>
       </div>
-
       <div class="chat-input-bar">
-        <input type="text" id="chat-input" placeholder="Message #project-team"
-          style="width:100%;background:#2c2d30;border:1px solid #3c3d40;border-radius:6px;padding:9px 14px;font-size:13px;color:#fff;outline:none;"
-          onkeydown="handleChatKey(event)">
+        <input type="text" id="intro-chat-input" placeholder="Message #project-team"
+          onkeydown="handleIntroKey(event)">
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 11: Oops
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-11">
-  <div class="oops-icon">⚠️</div>
-  <div class="overlay-title">Oops…</div>
-  <div class="overlay-sub" id="oops-text">[Joel] accidentally exited the ChatBox, and the chat cannot be continued.</div>
-  <div class="overlay-sub" style="font-size:12px;margin-top:8px;color:#ababad;">Press <strong style="color:#1d1c1d;font-weight:700">Enter ↵</strong> to continue.</div>
-</div>
+<!-- ══ SCREEN 7 — Task ══ -->
+<div class="overlay hidden" id="screen-7" style="justify-content:center;align-items:center;">
+  <div class="task-modal-wrap" id="task-modal">
+    <div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#8e8e93;margin-bottom:10px;">Assignment Brief</div>
+      <div style="font-size:22px;font-weight:800;color:#1d1c1d;letter-spacing:-.3px;">Welcome to Jones &amp; Jones</div>
+    </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 12: AI evaluation
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-12">
-  <div class="overlay-title">AI Evaluation</div>
-  <div class="loading-wrap">
-    <div class="loading-track"><div class="loading-fill" id="ai-bar"></div></div>
+    <div style="font-size:14px;color:#3a3a3c;line-height:1.8;display:flex;flex-direction:column;gap:14px;">
+      <p>You are a junior marketing strategist at Jones &amp; Jones, one of the city's most competitive agencies. Today, your four-person team is pitching <strong style="color:#1d1c1d;">ARIA</strong> — a smart home device that combines cutting-edge technology with a commitment to sustainability.</p>
+
+      <p>The pitch is in 15 minutes, and your team leader will be delivering it. Your leader has divided the work across the team, and every member's contribution counts.</p>
+
+      <div style="background:#f7f8fa;border-left:3px solid #007aff;border-radius:0 8px 8px 0;padding:16px 20px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#007aff;margin-bottom:8px;">Your Assignment — Sustainability</div>
+        <p style="margin:0;">Consumers today do not simply want smart devices — they want devices that align with their values. ARIA delivers on that promise: energy-efficient, manufactured with recycled materials, and designed to reduce household waste over time.</p>
+      </div>
+
+      <p>Your task is to craft <strong style="color:#1d1c1d;">2–3 taglines</strong> that bring this story to life. Consider what would compel a sustainability-conscious consumer to stop and take notice.</p>
+
+      <div style="background:#f7f8fa;border-radius:8px;padding:14px 18px;font-size:13px;color:#6e6e73;">
+        <div style="font-weight:600;color:#1d1c1d;margin-bottom:6px;">Examples for reference:</div>
+        <div>"Power your home. Protect the planet."</div>
+        <div style="margin-top:4px;">"Smart living, smaller footprint."</div>
+      </div>
+
+      <p style="color:#6e6e73;font-size:13px;">Once submitted, your contributions will be compiled into the team's shared pitch document. Your leader will review all submissions before the team finalizes the pitch.</p>
+    </div>
+
+    <div>
+      <textarea id="report-input" rows="4" placeholder="Enter your taglines here…"
+        oninput="updateCharCount()"
+        onpaste="event.preventDefault(); document.getElementById('report-error').textContent='Copy-paste is disabled. Please type your response directly.'"
+        style="background:#f7f8fa;border:1px solid #d1d1d6;border-radius:8px;padding:12px 16px;font-size:13px;color:#1d1c1d;outline:none;resize:vertical;width:100%;line-height:1.6;font-family:inherit;"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+        <span id="report-error" style="font-size:12px;color:#e8912d;"></span>
+        <span id="char-count">0 / 100</span>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div id="task-timer-badge" style="
+        display:inline-flex;align-items:center;gap:6px;
+        background:#fff3cd;border:1px solid #ffc107;
+        border-radius:6px;padding:6px 14px;
+        font-size:13px;font-weight:600;color:#856404;
+      ">⏱ <span id="task-timer">5:00</span> remaining</div>
+      <button class="btn" id="submit-btn" onclick="submitReport()" disabled>Submit →</button>
+    </div>
   </div>
-  <div class="overlay-sub" id="ai-eval-text">Our system is analyzing Joel's messages and team interaction…</div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SCREEN 13: Measures placeholder
-══════════════════════════════════════════ -->
-<div class="overlay hidden" id="screen-13">
-  <div class="overlay-title">✓ Simulation Complete</div>
-  <div class="overlay-sub">
-    Thank you! Please click the <strong>"→" (Next) button below</strong> to continue.
+<!-- ══ SCREEN 8 — Waiting ══ -->
+<div class="overlay hidden" id="screen-8">
+  <div class="overlay-title" style="margin-bottom:0">Please Wait</div>
+  <div class="overlay-sub">Your team leader is currently reviewing all submitted contributions. Please do not close this window.</div>
+  <div class="loading-wrap">
+    <div class="loading-track"><div class="loading-fill" id="wait-bar"></div></div>
+    <div class="loading-label" id="wait-label"></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 9 — Manipulation ChatBox ══ -->
+<div class="overlay hidden" id="screen-9" style="background:#fff;">
+  <div class="slack-shell">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="workspace-name">Jones &amp; Jones</div>
+        <div class="workspace-status">● Active simulation</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Channels</div>
+        <div class="channel-item clickable" id="sb-team" onclick="switchChannel('team')"># project-team <span class="notif-badge" id="badge-team"></span></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Direct Messages</div>
+        <div class="channel-item clickable" id="sb-leader" onclick="switchChannel('leader')">
+          <div class="dot"></div> <span id="sb-leader-name">—</span> <span class="notif-badge" id="badge-leader"></span>
+        </div>
+        <div class="channel-item clickable" id="sb-peer1" onclick="switchChannel('peer1')">
+          <div class="dot"></div> <span id="sb-peer1-name">—</span>
+        </div>
+        <div class="channel-item clickable" id="sb-peer2" onclick="switchChannel('peer2')">
+          <div class="dot"></div> <span id="sb-peer2-name">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-header">
+        <span class="chat-header-icon" id="manip-header-icon">#</span>
+        <span class="chat-header-name" id="manip-header-name">project-team</span>
+        <div class="chat-header-members" id="manip-header-members">
+          <div class="member-dot"></div> 4 members online
+        </div>
+      </div>
+      <div class="messages" id="manip-messages"></div>
+      <div class="typing-row" id="manip-typing">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+        <span class="typing-label" id="manip-typing-label"></span>
+      </div>
+      <div class="chat-input-bar">
+        <input type="text" id="manip-chat-input" placeholder="Message #project-team"
+          disabled onkeydown="handleManipKey(event)">
+      </div>
+    </div>
   </div>
 </div>
 
 
 <script>
-// ══════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════
-let condition = 'private';
-let username  = 'YOU';
+// ══════════════════════════════════════
+// CONDITION & STATE
+// ══════════════════════════════════════
+const CONDITION = 'private'; // ← this file is private
+
+let username   = '';
+let leaderName = '';
+let peer1Name  = '';
+let peer2Name  = '';
 let currentScreen = 1;
+let personalizedThx = null;
+let taskText = '';
 
-// Condition fixed: private
+// Manip chat state
+let activeChannel = 'team';
+let channelMessages = {};
+let unread = {};
+let allManipMsgsDone = false;
+let autoOopsTimer = null;
+let inputUnlocked = false;
 
-// (condition switcher removed)
+// Intro chat state
+let introChMsgs = {};
+let introActiveCh = 'team';
 
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+function randSimName() {
+  const L = 'ABCDEFGHJKLMNPQRSTUVWXYZ', D = '0123456789';
+  let s = '';
+  for (let i=0;i<3;i++) s += L[Math.floor(Math.random()*L.length)];
+  for (let i=0;i<4;i++) s += D[Math.floor(Math.random()*D.length)];
+  return s;
+}
+function nowTime() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+function saveEmbedded(key, value) {
+  try { const q = window.parent && window.parent.Qualtrics; if (q) q.SurveyEngine.setEmbeddedData(key, value); } catch(e) {}
+}
 
-// ══════════════════════════════════════════
+// ══════════════════════════════════════
 // NAVIGATION
-// ══════════════════════════════════════════
+// ══════════════════════════════════════
 function go(n) {
   document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
   const el = document.getElementById('screen-' + n);
   if (el) el.classList.remove('hidden');
   currentScreen = n;
-  if (n === 4)  { generateUsername(); }
-  if (n === 5)  startPairing();
-  if (n === 6)  { generatePeerNames(); showParticipants(); }
-  if (n === 7)  { /* task screen — no auto-trigger */ }
-  if (n === 8)  prefillChatboxLogin();
-  if (n === 9)  startWaiting();
-  if (n === 10) startChat();
-  if (n === 12) startAI();
+  if (n === 2) generateUsername();
+  if (n === 3) prefillLogin();
+  if (n === 4) startPairing();
+  if (n === 5) buildRoleTable();
+  if (n === 6) startIntroChat();
+  if (n === 7) animateTaskModal();
+  if (n === 8) startWaiting();
+  if (n === 9) startManipulation();
 }
 
-// ══════════════════════════════════════════
-// SCREEN 4 — username (auto-generate)
-// ══════════════════════════════════════════
+// ══════════════════════════════════════
+// SCREEN 2 — USERNAME
+// ══════════════════════════════════════
 function generateUsername() {
   document.getElementById('username-input').value = randSimName();
 }
-
 function setUsername() {
   const val = document.getElementById('username-input').value.trim();
-  if (!val || val.length < 2) {
-    document.getElementById('username-error').textContent = 'Please enter 2–12 letters/numbers.';
-    return;
-  }
+  if (!val || val.length < 2) { document.getElementById('username-error').textContent = 'Please enter 2–12 letters/numbers.'; return; }
   document.getElementById('username-error').textContent = '';
   username = val;
-  go(5);
+  go(3);
 }
 
-// ══════════════════════════════════════════
-// SCREEN 5 — fake pairing (random delays)
-// ══════════════════════════════════════════
+// ══════════════════════════════════════
+// SCREEN 3 — LOGIN
+// ══════════════════════════════════════
+function prefillLogin() { document.getElementById('cb-username').value = username; }
+
+// ══════════════════════════════════════
+// SCREEN 4 — PAIRING
+// ══════════════════════════════════════
 function startPairing() {
-  const bar   = document.getElementById('pair-bar');
-  const count = document.getElementById('pairing-count');
-  const title = document.getElementById('pairing-title');
-  bar.style.width = '0%';
-  count.textContent = '0 / 4 connected';
+  leaderName = randSimName(); peer1Name = randSimName(); peer2Name = randSimName();
+  const list = document.getElementById('pair-list');
+  list.innerHTML = '';
+  const countEl = document.getElementById('pairing-count');
+  const titleEl = document.getElementById('pairing-title');
+  countEl.textContent = '0 / 4 connected';
 
-  // Random cumulative delays: each person joins, total 8-20s
-  function randBetween(a, b) { return a + Math.random() * (b - a); }
-  const t1 = randBetween(1500, 4000);
-  const t2 = t1 + randBetween(1000, 3000);
-  const t3 = t2 + randBetween(1000, 3000);
-  const t4 = t3 + randBetween(800,  2500);
-
-  const steps = [
-    { pct: 25,  label: '1 / 4 connected', delay: t1 },
-    { pct: 50,  label: '2 / 4 connected', delay: t2 },
-    { pct: 75,  label: '3 / 4 connected', delay: t3 },
-    { pct: 100, label: '4 / 4 connected', delay: t4 },
+  const entries = [
+    { name: peer1Name, you: false },
+    { name: leaderName, you: false },
+    { name: peer2Name, you: false },
+    { name: username, you: true },
   ];
 
-  // Animate bar slowly while waiting
-  let animPct = 0;
-  const maxBeforeFirst = 20;
-  const animIv = setInterval(() => {
-    animPct = Math.min(animPct + 0.03, maxBeforeFirst);
-    bar.style.width = animPct + '%';
-  }, 80);
-
-  steps.forEach(s => {
-    setTimeout(() => {
-      clearInterval(animIv);
-      bar.style.width = s.pct + '%';
-      count.textContent = s.label;
-      if (s.pct === 100) {
-        title.textContent = 'All participants connected!';
-        setTimeout(() => go(6), 1200);
-      }
-    }, s.delay);
-  });
-}
-
-// ══════════════════════════════════════════
-// RANDOM PEER NAMES (ABC1234 format)
-// ══════════════════════════════════════════
-var peer1 = 'Mike';
-var peer2 = 'Joy';
-var leaderName = 'Joel';
-
-function randSimName() {
-  var letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  var digits  = '0123456789';
-  var prefix  = '';
-  for (var i = 0; i < 3; i++) prefix += letters[Math.floor(Math.random() * letters.length)];
-  var suffix  = '';
-  for (var j = 0; j < 4; j++) suffix += digits[Math.floor(Math.random() * digits.length)];
-  return prefix + suffix;
-}
-
-function generatePeerNames() {
-  leaderName = randSimName();
-  peer1      = randSimName();
-  peer2      = randSimName();
-  // update sidebar labels via spans
-  var sbLeaderName = document.getElementById('sb-jara-name');
-  var sb1Name = document.getElementById('sb-aliali-name');
-  var sb2Name = document.getElementById('sb-pl-name');
-  if (sbLeaderName) sbLeaderName.textContent = leaderName;
-  if (sb1Name) sb1Name.textContent = peer1;
-  if (sb2Name) sb2Name.textContent = peer2;
-}
-
-// ══════════════════════════════════════════
-// SCREEN 6 — participant list + role assign
-// ══════════════════════════════════════════
-function showParticipants() {
-  const list = document.getElementById('participant-list');
-  list.innerHTML = '';
-  const participants = [peer1, username, leaderName, peer2];
-  participants.forEach((name, i) => {
+  const rows = entries.map((e) => {
     const row = document.createElement('div');
-    row.className = 'participant-row';
-    row.innerHTML = `<div class="p-dot"></div> ${name}${name === username ? ' <em style="color:#ababad;font-size:11px">(you)</em>' : ''}`;
+    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 0;opacity:0;transition:opacity .4s;font-size:14px;color:#1d1c1d;';
+    row.innerHTML = `<div class="pair-dot" style="width:8px;height:8px;border-radius:50%;background:#d1d1d6;transition:background .3s;flex-shrink:0;"></div>
+                     <span style="font-weight:600">${e.name}</span>
+                     ${e.you ? '<span style="font-size:11px;color:#8e8e93;margin-left:2px">(you)</span>' : ''}`;
     list.appendChild(row);
-    setTimeout(() => row.classList.add('show'), i * 350 + 200);
+    return row;
   });
-  setTimeout(() => {
-    document.getElementById('role-reveal').classList.remove('hidden');
-  }, participants.length * 350 + 800);
+
+  function rb(a,b){ return a + Math.random()*(b-a); }
+  const t1=rb(1500,4000), t2=t1+rb(800,2500), t3=t2+rb(800,2500), t4=t3+rb(600,2000);
+  [t1,t2,t3,t4].forEach((t,i) => {
+    setTimeout(() => {
+      rows[i].style.opacity = '1';
+      rows[i].querySelector('.pair-dot').style.background = '#2bac76';
+      countEl.textContent = (i+1) + ' / 4 connected';
+      if (i === 3) { titleEl.textContent = 'All participants connected!'; setTimeout(() => go(5), 1200); }
+    }, t);
+  });
 }
 
-// ══════════════════════════════════════════
-// SCREEN 7 — report submit
-// ══════════════════════════════════════════
-function updateCharCount() {
-  var v = document.getElementById('report-input').value;
-  var len = v.length;
-  var counter = document.getElementById('char-count');
-  var btn = document.getElementById('submit-btn');
-  counter.textContent = len + ' / 100';
-  if (len >= 100) {
-    counter.style.color = '#2bac76';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-    document.getElementById('report-error').textContent = '';
-  } else {
-    counter.style.color = '#ababad';
-    btn.disabled = true;
-    btn.style.opacity = '0.4';
-    btn.style.cursor = 'not-allowed';
+// ══════════════════════════════════════
+// SCREEN 5 — ROLE TABLE
+// ══════════════════════════════════════
+function buildRoleTable() {
+  const tbody = document.getElementById('role-tbody');
+  tbody.innerHTML = '';
+  const participants = [
+    { name: peer1Name,  role: 'Role 1', title: 'Project Team Member',  you: false, leader: false },
+    { name: username,   role: 'Role 2', title: 'Project Team Member',  you: true,  leader: false },
+    { name: leaderName, role: 'Role 3', title: 'Project Team Leader',  you: false, leader: true  },
+    { name: peer2Name,  role: 'Role 4', title: 'Project Team Member',  you: false, leader: false },
+  ];
+  participants.forEach(p => {
+    const tr = document.createElement('tr');
+    if (p.you) tr.className = 'you-row';
+    const nameCell = p.name
+      + (p.you    ? ' <em style="font-size:11px;font-weight:400;color:#8e8e93">(you)</em>' : '')
+      + (p.leader ? ' <span style="font-size:10px;font-weight:600;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:3px;padding:1px 6px;margin-left:5px;vertical-align:middle;">Leader</span>' : '');
+    const titleCell = p.title + (p.you ? ' <span class="role-badge">Your role</span>' : '');
+    tr.innerHTML = `<td>${nameCell}</td><td>${p.role}</td><td>${titleCell}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('role-note').innerHTML =
+    `Roles were assigned randomly based on connection order.<br>
+     <strong>Your role:</strong> Project Team Member (Role 2) — working under <strong>${leaderName}</strong>, your Project Team Leader.`;
+
+  // Role card
+  const rcl = document.getElementById('role-card-leader');
+  if (rcl) rcl.textContent = leaderName;
+
+  document.getElementById('intro-dm-leader').textContent = leaderName;
+  document.getElementById('intro-dm-peer1').textContent  = peer1Name;
+  document.getElementById('intro-dm-peer2').textContent  = peer2Name;
+}
+
+// ══════════════════════════════════════
+// SCREEN 6 — INTRO CHAT
+// Flow: #project-team intros → leader sends DM badge → user clicks DM → sees task link → clicks link → go(7)
+// ══════════════════════════════════════
+function makeBadge(isLeader, isYou) {
+  const cls = isYou ? 'badge-you' : isLeader ? 'badge-leader' : 'badge-member';
+  const txt = isYou ? 'You' : isLeader ? 'Leader' : 'Member';
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+
+function renderChatMsg(m, containerId) {
+  const container = document.getElementById(containerId);
+  // clear empty placeholder
+  if (container.querySelector('.empty-msg')) container.innerHTML = '';
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  const isLeader = m.author === leaderName;
+  const isYou = !!m.isYou;
+  row.innerHTML = `
+    <div class="avatar ${m.avClass}">${m.author[0]}</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span class="msg-author">${m.author}${makeBadge(isLeader, isYou)}</span>
+        <span class="msg-time">${nowTime()}</span>
+      </div>
+      <div class="msg-text">${m.text}</div>
+      ${m.linkHtml || ''}
+    </div>`;
+  container.appendChild(row);
+  requestAnimationFrame(() => row.classList.add('visible'));
+  container.scrollTop = container.scrollHeight;
+}
+
+function showEmpty(containerId) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '<div class="empty-msg" style="color:#8e8e93;font-size:13px;padding:20px;text-align:center;">No messages yet.</div>';
+}
+
+function introSwitch(ch) {
+  introActiveCh = ch;
+  ['intro-sb-team','intro-sb-leader','intro-sb-peer1','intro-sb-peer2'].forEach(id =>
+    document.getElementById(id) && document.getElementById(id).classList.remove('active'));
+  const sbMap = { team:'intro-sb-team', leader:'intro-sb-leader', peer1:'intro-sb-peer1', peer2:'intro-sb-peer2' };
+  if (sbMap[ch]) document.getElementById(sbMap[ch]).classList.add('active');
+
+  const icon    = document.getElementById('intro-header-icon');
+  const hname   = document.getElementById('intro-header-name');
+  const hmem    = document.getElementById('intro-header-members');
+  const input   = document.getElementById('intro-chat-input');
+  if (ch === 'team') {
+    icon.textContent = '#'; hname.textContent = 'project-team';
+    hmem.innerHTML = '<div class="member-dot"></div> 4 members online';
+    input.placeholder = 'Message #project-team';
+    const bt = document.getElementById('intro-badge-team');
+    if (bt) { bt.textContent = ''; bt.classList.remove('show'); }
+  } else if (ch === 'leader') {
+    icon.textContent = '●'; hname.textContent = leaderName;
+    hmem.innerHTML = `<div class="member-dot"></div> ${leaderName} · online`;
+    input.placeholder = 'Message ' + leaderName;
+    // clear badge
+    const b = document.getElementById('intro-badge-leader');
+    if (b) { b.textContent = ''; b.classList.remove('show'); }
+  } else if (ch === 'peer1') {
+    icon.textContent = '●'; hname.textContent = peer1Name;
+    hmem.innerHTML = `<div class="member-dot"></div> ${peer1Name} · online`;
+    input.placeholder = 'Message ' + peer1Name;
+  } else if (ch === 'peer2') {
+    icon.textContent = '●'; hname.textContent = peer2Name;
+    hmem.innerHTML = `<div class="member-dot"></div> ${peer2Name} · online`;
+    input.placeholder = 'Message ' + peer2Name;
+  }
+
+  const container = document.getElementById('intro-messages');
+  container.innerHTML = '';
+  const msgs = introChMsgs[ch] || [];
+  if (msgs.length) msgs.forEach(m => renderChatMsg(m, 'intro-messages'));
+  else showEmpty('intro-messages');
+}
+
+function startIntroChat() {
+  introChMsgs = { team: [], leader: [], peer1: [], peer2: [] };
+  introActiveCh = 'team';
+
+  // Set team as active
+  introSwitch('team');
+
+  const typingRow   = document.getElementById('intro-typing');
+  const typingLabel = document.getElementById('intro-typing-label');
+
+  function showTyping(name) {
+    if (introActiveCh !== 'team') return;
+    typingLabel.textContent = name + ' is typing…';
+    typingRow.classList.add('visible');
+  }
+  function hideTyping() { typingRow.classList.remove('visible'); }
+
+  function pushTeamMsg(m) {
+    introChMsgs['team'].push(m);
+    if (introActiveCh === 'team') {
+      renderChatMsg(m, 'intro-messages');
+    } else {
+      // bump unread badge on #project-team
+      const badge = document.getElementById('intro-badge-team');
+      if (badge) {
+        const cur = parseInt(badge.textContent) || 0;
+        badge.textContent = cur + 1;
+        badge.classList.add('show');
+      }
+    }
+  }
+
+  let participantSent = false;
+
+  // Sequence: leader greets → peer1 → peer2 → input unlocks → after user sends → leader sends DM
+  const teamSeq = [
+    { delay: 800,   author: leaderName, avClass: 'av-leader',
+      text: `hey everyone! glad we're all here 👋` },
+    { delay: 4000,  author: leaderName, avClass: 'av-leader',
+      text: `before we get started, let's do a quick round of intros — just what angle you're covering today` },
+    { delay: 8000,  author: leaderName, avClass: 'av-leader',
+      text: `I'll go first! I'm your team leader for today's session. I'll be reviewing everyone's work and delivering the final pitch 🙂` },
+    { delay: 11500, author: peer1Name,  avClass: 'av-peer1',
+      text: `hi! I've got the design angle!` },
+    { delay: 15000, author: peer2Name,  avClass: 'av-peer2',
+      text: `hey team! I'm on the tech specs side 💪` },
+  ];
+
+  teamSeq.forEach(m => {
+    setTimeout(() => showTyping(m.author), Math.max(0, m.delay - 1400));
+    setTimeout(() => { hideTyping(); pushTeamMsg(m); }, m.delay);
+  });
+
+  // Unlock input right after leader's own intro (delay 8000 + a beat)
+  setTimeout(() => {
+    const input = document.getElementById('intro-chat-input');
+    input.placeholder = 'Message #project-team';
+    input.focus();
+  }, 9000);
+
+  window.handleIntroKey = function(e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const input = document.getElementById('intro-chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Render user msg in current channel
+    const youMsg = { author: username, avClass: 'av-you', isYou: true, ch: introActiveCh, text };
+    introChMsgs[introActiveCh] = introChMsgs[introActiveCh] || [];
+    introChMsgs[introActiveCh].push(youMsg);
+    if (document.getElementById('intro-messages').querySelector('.empty-msg')) {
+      document.getElementById('intro-messages').innerHTML = '';
+    }
+    renderChatMsg(youMsg, 'intro-messages');
+    input.value = '';
+    input.placeholder = 'Message ' + (introActiveCh === 'team' ? '#project-team' : leaderName);
+
+    // Trigger leader reaction only once, on team channel
+    if (!participantSent && introActiveCh === 'team') {
+      participantSent = true;
+
+      setTimeout(() => { showTyping(leaderName); }, 1200);
+      setTimeout(() => {
+        hideTyping();
+        pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `great! love the energy 🙌` });
+      }, 2800);
+      setTimeout(() => { showTyping(leaderName); }, 5000);
+      setTimeout(() => {
+        hideTyping();
+        pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `alright, let's get to work — I'm sending each of you your assignment via DM now` });
+        // Delay then send DM with task link
+        setTimeout(sendAssignmentDM, 2500);
+      }, 7000);
+    }
+  };
+}
+
+function sendAssignmentDM() {
+  // Show notification badge on leader DM
+  const badge = document.getElementById('intro-badge-leader');
+  if (badge) { badge.textContent = '1'; badge.classList.add('show'); }
+
+  // Add DM message with clickable task link
+  const linkHtml = `<a class="task-link" onclick="goToTask()" href="javascript:void(0)">
+    <span class="task-link-icon">📋</span> View your assignment: Sustainability taglines
+  </a>`;
+
+  const dmMsg = {
+    author: leaderName, avClass: 'av-leader',
+    text: `hey! here's your assignment for today's session. click the link below to get started 👇`,
+    linkHtml
+  };
+  introChMsgs['leader'] = introChMsgs['leader'] || [];
+  introChMsgs['leader'].push(dmMsg);
+
+  // If user is already on leader DM, render immediately
+  if (introActiveCh === 'leader') {
+    renderChatMsg(dmMsg, 'intro-messages');
   }
 }
 
-var personalizedThx = null; // LLM이 생성한 감사 메시지
+function goToTask() {
+  go(7);
+}
+
+// ══════════════════════════════════════
+// SCREEN 7 — TASK MODAL ANIMATION + TIMER
+// ══════════════════════════════════════
+let taskTimerInterval = null;
+
+function animateTaskModal() {
+  const screen = document.getElementById('screen-7');
+  const modal  = document.getElementById('task-modal');
+  screen.classList.remove('modal-bg');
+  modal.classList.remove('modal-in');
+  requestAnimationFrame(() => {
+    screen.classList.add('modal-bg');
+    setTimeout(() => modal.classList.add('modal-in'), 40);
+  });
+
+  // Start 5-min countdown
+  if (taskTimerInterval) clearInterval(taskTimerInterval);
+  let secondsLeft = 300;
+  const timerEl = document.getElementById('task-timer');
+  const badgeEl = document.getElementById('task-timer-badge');
+  taskTimerInterval = setInterval(() => {
+    secondsLeft--;
+    if (secondsLeft < 0) secondsLeft = 0;
+    const m = Math.floor(secondsLeft / 60);
+    const s = secondsLeft % 60;
+    timerEl.textContent = m + ':' + s.toString().padStart(2, '0');
+    // Turn red in last 60s
+    if (secondsLeft <= 60) {
+      badgeEl.style.background = '#fee2e2';
+      badgeEl.style.borderColor = '#ef4444';
+      badgeEl.style.color = '#b91c1c';
+    }
+    if (secondsLeft === 0) clearInterval(taskTimerInterval);
+  }, 1000);
+}
+
+// ══════════════════════════════════════
+// SCREEN 7 — TASK SUBMIT
+// ══════════════════════════════════════
+function updateCharCount() {
+  const v = document.getElementById('report-input').value;
+  const len = v.length;
+  const counter = document.getElementById('char-count');
+  const btn = document.getElementById('submit-btn');
+  counter.textContent = len + ' / 100';
+  counter.style.color = len >= 100 ? '#2bac76' : '#8e8e93';
+  btn.disabled = len < 100;
+}
 
 function submitReport() {
-  var v = document.getElementById('report-input').value.trim();
-  if (!v || v.length < 100) {
-    document.getElementById('report-error').textContent = 'Please write at least 100 characters before continuing.';
-    return;
-  }
-  document.getElementById('report-error').textContent = '';
+  const v = document.getElementById('report-input').value.trim();
+  if (v.length < 100) { document.getElementById('report-error').textContent = 'Please write at least 100 characters before submitting.'; return; }
+  taskText = v;
   saveEmbedded('report_text', v);
-  // 백그라운드에서 LLM 호출 (waiting 화면 동안)
-  generateThxMessage(v);
+  if (CONDITION !== 'neutral') generateThxMessage(v);
   go(8);
 }
 
-async function generateThxMessage(taskText) {
+async function generateThxMessage(text) {
   try {
-    var prompt = `You are a team manager on Slack. A team member just submitted the following marketing taglines for a product pitch:\n\n"${taskText}"\n\nWrite ONE short, casual Slack message (max 12 words) that picks out something specific and good from their work. Sound natural, like a real person texting on Slack. No quotes, no emoji, no punctuation at the end. Examples of the style: "the sustainability angle you used was really sharp" or "loved how you framed the eco message".`;
-
-    var response = await fetch("https://api.anthropic.com/v1/messages", {
+    const prompt = `You are a team leader sending a Slack message. A team member submitted these marketing taglines:\n\n"${text}"\n\nWrite ONE short casual Slack message (max 12 words) referencing something specific and positive from their taglines. No quotes, no emoji, no punctuation at end. Example: "the sustainability angle you used was really sharp"`;
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 60,
-        messages: [{ role: "user", content: prompt }]
-      })
+      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 60, messages: [{ role: "user", content: prompt }] })
     });
-    var data = await response.json();
+    const data = await response.json();
     if (data.content && data.content[0] && data.content[0].text) {
       personalizedThx = data.content[0].text.trim().replace(/^["']|["']$/g, '');
     }
-  } catch(e) {
-    personalizedThx = null; // 실패하면 fallback으로
-  }
+  } catch(e) { personalizedThx = null; }
 }
 
-// ══════════════════════════════════════════
-// SCREEN 8 — chatbox login prefill
-// ══════════════════════════════════════════
-function prefillChatboxLogin() {
-  document.getElementById('cb-user').value = username;
-}
-function loginChatbox() { go(9); }
-
-// ══════════════════════════════════════════
-// SCREEN 9 — waiting bar (random 60–180s)
-// ══════════════════════════════════════════
+// ══════════════════════════════════════
+// SCREEN 8 — WAITING
+// ══════════════════════════════════════
 function startWaiting() {
-  const bar   = document.getElementById('wait-bar');
+  const bar = document.getElementById('wait-bar');
   const label = document.getElementById('wait-label');
-  bar.style.width = '0%';
+  bar.style.width = '0%'; label.textContent = '';
   const totalMs = 8000 + Math.random() * 7000;
-  const intervalMs = 200;
-  const increment = (intervalMs / totalMs) * 100;
-  let pct = 0;
-  let barDone = false;
-  let llmDone = (condition === 'neutral'); // neutral은 LLM 불필요
+  const iv_ms = 150;
+  const inc = (iv_ms / totalMs) * 100;
+  let pct = 0, barDone = false, llmDone = CONDITION === 'neutral';
 
-  function tryStart() {
-    if (barDone && llmDone) {
-      setTimeout(() => go(10), 800);
-    }
-  }
-
-  // LLM 응답 대기 (최대 15초 timeout)
-  if (condition !== 'neutral') {
-    var llmTimeout = setTimeout(function() {
-      llmDone = true;
-      tryStart();
-    }, 15000);
-
-    var llmCheck = setInterval(function() {
-      if (personalizedThx !== null) {
-        clearInterval(llmCheck);
-        clearTimeout(llmTimeout);
-        llmDone = true;
-        tryStart();
-      }
+  function tryAdvance() { if (barDone && llmDone) setTimeout(() => go(9), 600); }
+  if (CONDITION !== 'neutral') {
+    const llmT = setTimeout(() => { llmDone = true; tryAdvance(); }, 15000);
+    const llmC = setInterval(() => {
+      if (personalizedThx !== null) { clearInterval(llmC); clearTimeout(llmT); llmDone = true; tryAdvance(); }
     }, 300);
   }
-
   const iv = setInterval(() => {
-    pct += increment;
+    pct += inc;
     bar.style.width = Math.min(pct, 100) + '%';
-    if (pct > 65) label.textContent = 'Your team leader [' + leaderName + '] has logged into the ChatBox. Connecting you now...';
+    if (pct > 50) label.textContent = 'Submissions received. Review in progress…';
+    if (pct > 80) label.textContent = 'Review nearly complete…';
     if (pct >= 100) {
-      clearInterval(iv);
-      barDone = true;
-      tryStart();
+      clearInterval(iv); bar.style.width = '100%';
+      label.textContent = `✅ ${leaderName} is ready. Connecting you now…`;
+      barDone = true; tryAdvance();
     }
-  }, intervalMs);
+  }, iv_ms);
 }
 
-// ══════════════════════════════════════════
-// SCREEN 10 — CHAT MANIPULATION
-// ══════════════════════════════════════════
-function startChat() {
-  setupChatUI();
-  const msgs = getMessages();
-  runMessages(msgs, 0);
-}
-
-function setupChatUI() {
-  const icon    = document.getElementById('header-icon');
-  const name    = document.getElementById('header-name');
-  const members = document.getElementById('header-members');
-  const inputEl = document.getElementById('chat-input');
-  const sbTeam  = document.getElementById('sb-team');
-  const sbJara  = document.getElementById('sb-jara');
-
-  // All conditions start on #project-team
-  icon.textContent    = '#';
-  name.textContent    = 'project-team';
-  members.innerHTML   = '<div class="member-dot"></div> 4 members online';
-  inputEl.placeholder = 'Message #project-team';
-  sbTeam.classList.add('active');
-  sbJara.classList.remove('active');
-
-  document.getElementById('messages').innerHTML = '';
-  document.getElementById('typing-label').textContent = leaderName + ' is typing…';
+// ══════════════════════════════════════
+// SCREEN 9 — MANIPULATION
+// ══════════════════════════════════════
+function startManipulation() {
   activeChannel = 'team';
-  channelMessages = { team: [], jara: [], aliali: [], joy: [], general: [] };
-  unread = { team: 0, jara: 0, aliali: 0, joy: 0, general: 0 };
-  allMsgsDone = false;
-  autoOopsTimer = null;
-  personalizedThx = null;
-  ['badge-team','badge-jara','badge-aliali','badge-joy'].forEach(function(id) {
-    var el = document.getElementById(id);
+  channelMessages = { team: [], leader: [], peer1: [], peer2: [] };
+  unread = { team: 0, leader: 0, peer1: 0, peer2: 0 };
+  allManipMsgsDone = false; autoOopsTimer = null; inputUnlocked = false;
+
+  document.getElementById('sb-leader-name').textContent = leaderName;
+  document.getElementById('sb-peer1-name').textContent  = peer1Name;
+  document.getElementById('sb-peer2-name').textContent  = peer2Name;
+  ['badge-team','badge-leader'].forEach(id => {
+    const el = document.getElementById(id);
     if (el) { el.textContent = ''; el.classList.remove('show'); }
   });
+
+  ['sb-team','sb-leader','sb-peer1','sb-peer2'].forEach(id =>
+    document.getElementById(id).classList.remove('active'));
+  document.getElementById('sb-team').classList.add('active');
+  updateManipHeader('team');
+  document.getElementById('manip-messages').innerHTML = '';
+  document.getElementById('manip-chat-input').disabled = true;
+
+  runManipMessages(getManipMessages(), 0);
 }
 
-function getMessages() {
+function getManipMessages() {
   const u = username;
-  if (condition === 'public') {
+  const thx = personalizedThx || "exactly what we needed for ARIA's pitch";
+  if (CONDITION === 'public') {
     return [
-      { delay: 800,   author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `hey folks 👋`, channel: 'team' },
-      { delay: 3000,  author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `<span class="mention">@${u}</span> Your slogans were super helpful!`,
-        channel: 'team',
-        reactions: ['👍', '❤️'],
-        reactionAuthors: [peer1, peer2],
-        reactionDelay1: 2000, reactionDelay2: 4000 },
-      { delay: 7000,  author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: personalizedThx || 'Thank you 🙏', channel: 'team' },
-      { delay: 11000, author: peer1, role: 'Project Team Member', avatar: peer1[0], avClass: 'peer',
-        text: `${u} 👏👏`, channel: 'team' },
-      { delay: 15000, author: peer2, role: 'Project Team Member', avatar: peer2[0], avClass: 'peer2',
-        text: `🙌`, channel: 'team' },
+      { delay: 1000,  author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `hey team 👋 just finished reviewing everyone's contributions before we finalize the pitch` },
+      { delay: 4000,  author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `really solid work across the board — I think we have a strong submission 💪` },
+      { delay: 7000,  author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `I do want to give a special shoutout to <span class="mention">@${u}</span> 🌟` },
+      { delay: 9000,  author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `the sustainability taglines were outstanding — ${thx}` },
+      { delay: 11000, author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `you really came through for the team today — thank you 🙏`,
+        reactions: [{ emoji: '👍', author: peer1Name, delay: 2000 }, { emoji: '❤️', author: peer2Name, delay: 4000 }] },
     ];
-  } else if (condition === 'private') {
+  } else if (CONDITION === 'private') {
     return [
-      { delay: 800,   author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `hey folks 👋`, channel: 'team' },
-      { delay: 4000,  author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `hey!`, channel: 'jara', notify: true },
-      { delay: 8000,  author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `Your slogans were super helpful!`, channel: 'jara', notify: true },
-      { delay: 13000, author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: personalizedThx || 'Thank you 🙏', channel: 'jara', notify: true },
+      { delay: 800,   author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `hey folks! hope the task went well 👋` },
+      { delay: 3000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `hey! just wanted to reach out before we wrap up 👋` },
+      { delay: 6000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `I've been going through everyone's contributions and yours really stood out to me. The sustainability taglines you came up with were exactly what we needed — ${thx}` },
+      { delay: 10000, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `honestly, you made my job a lot easier today. really appreciate the effort you put in 🙏` },
+      { delay: 13000, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `thanks for being such a reliable part of the team 😊` },
     ];
   } else {
     return [
-      { delay: 800,   author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `hey folks 👋`, channel: 'team' },
-      { delay: 4000,  author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `hey!`, channel: 'jara', notify: true },
-      { delay: 8000,  author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `how was the task?`, channel: 'jara', notify: true },
-      { delay: 13000, author: leaderName, role: 'Project Team Manager', avatar: 'J', avClass: '',
-        text: `just checking in`, channel: 'jara', notify: true },
+      { delay: 800,   author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `hey folks! hope the task went well 👋` },
+      { delay: 3000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `hey! 👋` },
+      { delay: 6000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `how was the task?` },
+      { delay: 10000, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `just checking in before we wrap things up` },
     ];
   }
 }
 
-// ── channel state for public condition ──
-var activeChannel = 'team';
-var channelMessages = { team: [], jara: [], aliali: [], joy: [], general: [] };
-var unread = { team: 0, jara: 0, aliali: 0, joy: 0, general: 0 };
+function runManipMessages(msgs, idx) {
+  const tr = document.getElementById('manip-typing');
+  const tl = document.getElementById('manip-typing-label');
+  if (idx >= msgs.length) {
+    tr.classList.remove('visible');
+    allManipMsgsDone = true; inputUnlocked = true;
+    document.getElementById('manip-chat-input').disabled = false;
+    document.getElementById('manip-chat-input').focus();
+    const reqCh = CONDITION === 'public' ? 'team' : 'leader';
+    if (activeChannel === reqCh) autoOopsTimer = setTimeout(triggerOops, 15000);
+    return;
+  }
+  const m = msgs[idx];
+  setTimeout(() => {
+    if (activeChannel === m.ch) { tl.textContent = m.author + ' is typing…'; tr.classList.add('visible'); }
+  }, Math.max(0, m.delay - 1400));
+
+  setTimeout(() => {
+    tr.classList.remove('visible');
+    channelMessages[m.ch] = channelMessages[m.ch] || [];
+    channelMessages[m.ch].push(m);
+    if (activeChannel === m.ch) {
+      renderManipMsg(m);
+      if (m.reactions) {
+        const container = document.getElementById('manip-messages');
+        const lastRow = container.lastElementChild;
+        m.reactions.forEach(r => {
+          setTimeout(() => {
+            let rRow = lastRow.querySelector('.reaction-row');
+            if (!rRow) { rRow = document.createElement('div'); rRow.className = 'reaction-row'; lastRow.querySelector('.msg-body').appendChild(rRow); }
+            const chip = document.createElement('div');
+            chip.className = 'reaction-chip';
+            chip.textContent = r.emoji + ' ' + r.author;
+            rRow.appendChild(chip);
+            requestAnimationFrame(() => chip.classList.add('show'));
+          }, r.delay);
+        });
+      }
+    } else {
+      // Not currently viewing this channel — show unread badge
+      unread[m.ch] = (unread[m.ch] || 0) + 1;
+      if (m.ch === 'leader') {
+        const badge = document.getElementById('badge-leader');
+        if (badge) { badge.textContent = unread['leader']; badge.classList.add('show'); }
+      } else if (m.ch === 'team') {
+        const badge = document.getElementById('badge-team');
+        if (badge) { badge.textContent = unread['team']; badge.classList.add('show'); }
+      }
+    }
+    runManipMessages(msgs, idx + 1);
+  }, m.delay);
+}
+
+function renderManipMsg(m) {
+  const container = document.getElementById('manip-messages');
+  if (container.querySelector('.empty-msg')) container.innerHTML = '';
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  const isLeader = m.author === leaderName;
+  const isYou = !!m.isYou;
+  row.innerHTML = `
+    <div class="avatar ${m.avClass}">${m.author[0]}</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span class="msg-author">${m.author}${makeBadge(isLeader, isYou)}</span>
+        <span class="msg-time">${nowTime()}</span>
+      </div>
+      <div class="msg-text">${m.text}</div>
+    </div>`;
+  container.appendChild(row);
+  requestAnimationFrame(() => row.classList.add('visible'));
+  container.scrollTop = container.scrollHeight;
+}
 
 function switchChannel(ch) {
   activeChannel = ch;
-  ['sb-general','sb-team','sb-jara','sb-aliali','sb-pl'].forEach(function(id) {
-    document.getElementById(id).classList.remove('active');
-  });
-  var sbMap = { team: 'sb-team', jara: 'sb-jara', aliali: 'sb-aliali', joy: 'sb-pl', general: 'sb-general' };
+  ['sb-team','sb-leader','sb-peer1','sb-peer2'].forEach(id =>
+    document.getElementById(id).classList.remove('active'));
+  const sbMap = { team:'sb-team', leader:'sb-leader', peer1:'sb-peer1', peer2:'sb-peer2' };
   if (sbMap[ch]) document.getElementById(sbMap[ch]).classList.add('active');
+  updateManipHeader(ch);
 
-  var icon    = document.getElementById('header-icon');
-  var name    = document.getElementById('header-name');
-  var members = document.getElementById('header-members');
-  var inputPh = document.getElementById('chat-input');
-  if (ch === 'team') {
-    icon.textContent = '#'; name.textContent = 'project-team';
-    members.innerHTML = '<div class="member-dot"></div> 4 members online';
-    inputPh.value = ''; inputPh.placeholder = 'Message #project-team';
-  } else if (ch === 'jara') {
-    icon.textContent = '●'; name.textContent = leaderName;
-    members.innerHTML = '<div class="member-dot"></div> ' + leaderName + ' · online';
-    inputPh.value = ''; inputPh.placeholder = 'Message ' + leaderName;
-  } else if (ch === 'aliali') {
-    icon.textContent = '●'; name.textContent = peer1;
-    members.innerHTML = '<div class="member-dot"></div> ' + peer1 + ' · online';
-    inputPh.value = ''; inputPh.placeholder = 'Message ' + peer1;
-  } else if (ch === 'joy') {
-    icon.textContent = '●'; name.textContent = peer2;
-    members.innerHTML = '<div class="member-dot"></div> ' + peer2 + ' · online';
-    inputPh.value = ''; inputPh.placeholder = 'Message ' + peer2;
-  } else {
-    icon.textContent = '#'; name.textContent = 'general';
-    members.innerHTML = '<div class="member-dot"></div> 4 members online';
-    inputPh.value = ''; inputPh.placeholder = 'Message #general';
-  }
-
-  var container = document.getElementById('messages');
+  const container = document.getElementById('manip-messages');
   container.innerHTML = '';
-  if (channelMessages[ch] && channelMessages[ch].length > 0) {
-    channelMessages[ch].forEach(function(m) { renderMessage(m, container); });
-  } else {
-    container.innerHTML = '<div style="color:#ababad;font-size:13px;padding:20px;text-align:center;">No messages yet.</div>';
-  }
+  const msgs = channelMessages[ch] || [];
+  if (msgs.length) msgs.forEach(m => renderManipMsg(m));
+  else container.innerHTML = '<div class="empty-msg" style="color:#8e8e93;font-size:13px;padding:20px;text-align:center;">No messages yet.</div>';
   container.scrollTop = container.scrollHeight;
 
-  // required channel 보는 순간 10초 타이머 시작
-  var requiredCh = (condition === 'public') ? 'team' : 'jara';
-  if (allMsgsDone && ch === requiredCh && !autoOopsTimer) {
-    autoOopsTimer = setTimeout(function() {
-      if (allMsgsDone) triggerOops();
-    }, 15000);
-  }
+  unread[ch] = 0;
+  const badge = document.getElementById('badge-' + (ch === 'leader' ? 'leader' : ch));
+  if (badge) { badge.textContent = ''; badge.classList.remove('show'); }
 
-  // Clear badge
-  if (unread[ch] !== undefined) {
-    unread[ch] = 0;
-    var badge = document.getElementById('badge-' + (ch === 'joy' ? 'joy' : ch));
-    if (badge) { badge.textContent = ''; badge.classList.remove('show'); }
+  const reqCh = CONDITION === 'public' ? 'team' : 'leader';
+  if (allManipMsgsDone && ch === reqCh && !autoOopsTimer) autoOopsTimer = setTimeout(triggerOops, 15000);
+}
+
+function updateManipHeader(ch) {
+  const icon   = document.getElementById('manip-header-icon');
+  const hname  = document.getElementById('manip-header-name');
+  const hmem   = document.getElementById('manip-header-members');
+  const input  = document.getElementById('manip-chat-input');
+  if (ch === 'team') {
+    icon.textContent = '#'; hname.textContent = 'project-team';
+    hmem.innerHTML = '<div class="member-dot"></div> 4 members online';
+    input.placeholder = 'Message #project-team';
+  } else if (ch === 'leader') {
+    icon.textContent = '●'; hname.textContent = leaderName;
+    hmem.innerHTML = `<div class="member-dot"></div> ${leaderName} · online`;
+    input.placeholder = 'Message ' + leaderName;
+  } else if (ch === 'peer1') {
+    icon.textContent = '●'; hname.textContent = peer1Name;
+    hmem.innerHTML = `<div class="member-dot"></div> ${peer1Name} · online`;
+    input.placeholder = 'Message ' + peer1Name;
+  } else if (ch === 'peer2') {
+    icon.textContent = '●'; hname.textContent = peer2Name;
+    hmem.innerHTML = `<div class="member-dot"></div> ${peer2Name} · online`;
+    input.placeholder = 'Message ' + peer2Name;
   }
 }
 
-function addUnread(ch) {
-  if (ch === activeChannel) return; // already viewing
-  unread[ch] = (unread[ch] || 0) + 1;
-  var badge = document.getElementById('badge-' + ch);
-  if (badge) { badge.textContent = unread[ch]; badge.classList.add('show'); }
+function handleManipKey(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  if (!inputUnlocked) return;
+  const input = document.getElementById('manip-chat-input');
+  const text = input.value.trim();
+  if (text) {
+    renderManipMsg({ author: username, avClass: 'av-you', isYou: true, text });
+    input.value = '';
+  }
+  const reqCh = CONDITION === 'public' ? 'team' : 'leader';
+  if (allManipMsgsDone && activeChannel === reqCh) {
+    inputUnlocked = false;
+    document.getElementById('manip-chat-input').disabled = true;
+    if (autoOopsTimer) { clearTimeout(autoOopsTimer); autoOopsTimer = null; }
+    setTimeout(triggerOops, 5000);
+  }
 }
-
-var autoOopsTimer = null;
 
 function triggerOops() {
   if (autoOopsTimer) { clearTimeout(autoOopsTimer); autoOopsTimer = null; }
-  var typingRow = document.getElementById('typing-row');
-  var typingLabel = document.getElementById('typing-label');
-  typingLabel.textContent = leaderName + ' is typing…';
-  typingRow.classList.add('visible');
-  setTimeout(function() {
-    typingRow.classList.remove('visible');
-    // Notify Qualtrics to auto-advance (no complete screen)
+  const tr = document.getElementById('manip-typing');
+  const tl = document.getElementById('manip-typing-label');
+  tl.textContent = leaderName + ' is typing…'; tr.classList.add('visible');
+  setTimeout(() => {
+    tr.classList.remove('visible');
+    // Save embedded data and signal Qualtrics to advance
+    saveEmbedded('condition', CONDITION);
+    saveEmbedded('username', username);
+    saveEmbedded('sim_complete', '1');
     try { window.parent.postMessage('sim_done', '*'); } catch(e) {}
   }, 2000);
 }
 
-function runMessages(msgs, idx) {
-  if (idx >= msgs.length) {
-    document.getElementById('typing-row').classList.remove('visible');
-    allMsgsDone = true;
-    // 마지막 메시지 채널 기억
-    var lastCh = msgs[msgs.length - 1].channel || null;
-    window._lastMsgChannel = lastCh;
-    // 지금 required channel 보고 있으면 바로 10초 타이머
-    var requiredCh = (condition === 'public') ? 'team' : 'jara';
-    if (activeChannel === requiredCh) {
-      autoOopsTimer = setTimeout(function() {
-        if (allMsgsDone) triggerOops();
-      }, 15000);
-    }
-    // 아니면 switchChannel에서 타이머 시작
-    return;
-  }
-  var m = msgs[idx];
-  var typingRow = document.getElementById('typing-row');
-  var ch = m.channel || null;
-  var typingDelay = m.delay - 1500;
-
-  setTimeout(function() {
-    if (activeChannel === ch || !ch) {
-      typingRow.classList.add('visible');
-      document.getElementById('typing-label').textContent =
-        (m.author === peer1 || m.author === peer2) ? m.author + ' is typing…' : leaderName + ' is typing…';
-    }
-  }, typingDelay < 0 ? 0 : typingDelay);
-
-  setTimeout(function() {
-    typingRow.classList.remove('visible');
-
-    if (ch) {
-      if (!channelMessages[ch]) channelMessages[ch] = [];
-      channelMessages[ch].push(m);
-
-      if (activeChannel === ch) {
-        var container = document.getElementById('messages');
-        renderMessage(m, container);
-        container.scrollTop = container.scrollHeight;
-        // staggered reactions
-        if (m.reactions && m.reactionAuthors) {
-          var msgRow = container.lastElementChild;
-          m.reactions.forEach(function(emoji, i) {
-            var delay = i === 0 ? m.reactionDelay1 : m.reactionDelay2;
-            setTimeout(function() {
-              var rr = msgRow.querySelector('.reaction-row');
-              if (!rr) {
-                rr = document.createElement('div');
-                rr.className = 'reaction-row';
-                msgRow.querySelector('.msg-body').appendChild(rr);
-              }
-              var chip = document.createElement('div');
-              chip.className = 'reaction-chip';
-              chip.style.opacity = '0';
-              chip.style.transition = 'opacity 0.3s';
-              chip.textContent = emoji + ' ' + m.reactionAuthors[i];
-              rr.appendChild(chip);
-              requestAnimationFrame(function() { chip.style.opacity = '1'; });
-            }, delay);
-          });
-        }
-      } else {
-        // 다른 채널 — 뱃지
-        addUnread(ch);
-        // notify 플래시 (private/neutral DM)
-        if (m.notify) {
-          var badge = document.getElementById('badge-jara');
-          if (badge) {
-            badge.textContent = unread[ch] || '●';
-            badge.classList.add('show');
-          }
-        }
-      }
-    }
-
-    runMessages(msgs, idx + 1);
-  }, m.delay);
-}
-
-function renderMessage(m, container) {
-  var now = new Date();
-  var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  var row = document.createElement('div');
-  row.className = 'msg-row';
-  var reactionsHTML = '';
-  if (m.reactions) {
-    // Start hidden if reactionDelay set, show immediately otherwise
-    var displayStyle = m.reactionDelay ? 'display:none;' : 'display:flex;';
-    reactionsHTML = '<div class="reaction-row" style="' + displayStyle + '">' +
-      m.reactions.map(function(r) { return '<div class="reaction-chip">' + r + '</div>'; }).join('') +
-      '</div>';
-  }
-  row.innerHTML =
-    '<div class="avatar ' + m.avClass + '">' + m.avatar + '</div>' +
-    '<div class="msg-body">' +
-      '<div class="msg-meta">' +
-        '<span class="msg-author">' + m.author + '<span class="badge">' + m.role + '</span></span>' +
-        '<span class="msg-time">' + time + '</span>' +
-      '</div>' +
-      '<div class="msg-text">' + m.text + '</div>' +
-      reactionsHTML +
-    '</div>';
-  container.appendChild(row);
-  requestAnimationFrame(function() { row.classList.add('visible'); });
-}
-
-// ══════════════════════════════════════════
-// SCREEN 12 — AI evaluation loading
-// ══════════════════════════════════════════
-function startAI() {
-  const bar = document.getElementById('ai-bar');
-  bar.style.width = '0%';
-  let pct = 0;
-  const iv = setInterval(() => {
-    pct += .8;
-    bar.style.width = Math.min(pct, 100) + '%';
-    if (pct >= 100) { clearInterval(iv); setTimeout(() => go(13), 500); }
-  }, 80);
-}
-
-// ══════════════════════════════════════════
-// QUALTRICS EMBEDDED DATA
-// ══════════════════════════════════════════
-function saveEmbedded(key, value) {
-  try {
-    var q = window.parent && window.parent.Qualtrics;
-    if (q) q.SurveyEngine.setEmbeddedData(key, value);
-  } catch(e) {}
-  try { console.log('sim_data:', key, '=', value); } catch(e) {}
-}
-
-function finishExperiment() {
-  saveEmbedded('condition',    condition);
-  saveEmbedded('username',     username);
-  saveEmbedded('sim_complete', '1');
-  // In Qualtrics this advances automatically; standalone shows done screen
-  document.getElementById('screen-13').innerHTML =
-    '<div class="overlay-title">✓ Simulation Complete</div>' +
-    '<div class="overlay-sub">Please return to the survey to answer the final questions.</div>';
-}
-
-// ── chat input key handler ──
-var allMsgsDone = false;
-
-function handleChatKey(e) {
-  if (e.key !== 'Enter') return;
-  e.preventDefault();
-  var input = document.getElementById('chat-input');
-  var text = input.value.trim();
-
-  if (text) {
-    var container = document.getElementById('messages');
-    var now = new Date();
-    var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-    var row = document.createElement('div');
-    row.className = 'msg-row visible';
-    row.innerHTML =
-      '<div class="avatar" style="background:#5c3d8a;">' + (username[0] || 'Y') + '</div>' +
-      '<div class="msg-body">' +
-        '<div class="msg-meta">' +
-          '<span class="msg-author">' + username + '<span class="badge" style="background:#3a2060;">You</span></span>' +
-          '<span class="msg-time">' + time + '</span>' +
-        '</div>' +
-        '<div class="msg-text">' + text + '</div>' +
-      '</div>';
-    container.appendChild(row);
-    container.scrollTop = container.scrollHeight;
-    input.value = '';
-  }
-
-  // 엔딩 조건 확인
-  // public: #project-team 봐야 함
-  // private/neutral: jara DM 봐야 함
-  var requiredChannel = (condition === 'public') ? 'team' : 'jara';
-  if (allMsgsDone && activeChannel === requiredChannel) {
-    allMsgsDone = false;
-    if (autoOopsTimer) { clearTimeout(autoOopsTimer); autoOopsTimer = null; }
-    setTimeout(function() { triggerOops(); }, 5000);
-  }
-}
-
-// ── screen 11 Enter to go to 12 ──
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && currentScreen === 11) {
-    go(12);
-  }
-});
-
-// ── init ──
-go(4);
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+go(1);
 </script>
 </body>
 </html>
