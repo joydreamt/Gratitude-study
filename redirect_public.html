@@ -529,7 +529,6 @@ let leaderName = '';
 let peer1Name  = '';
 let peer2Name  = '';
 let currentScreen = 1;
-let personalizedThx = null;
 let taskText = '';
 
 // Manip chat state
@@ -791,14 +790,16 @@ function startIntroChat() {
   const teamSeq = [
     { delay: 800,   author: leaderName, avClass: 'av-leader',
       text: `hey everyone! glad we're all here 👋` },
-    { delay: 4000,  author: leaderName, avClass: 'av-leader',
-      text: `before we get started, let's do a quick round of intros — just what angle you're covering today` },
-    { delay: 8000,  author: leaderName, avClass: 'av-leader',
-      text: `I'll go first! I'm your team leader for today's session. I'll be reviewing everyone's work and delivering the final pitch 🙂` },
-    { delay: 11500, author: peer1Name,  avClass: 'av-peer1',
-      text: `hi! I've got the design angle!` },
-    { delay: 15000, author: peer2Name,  avClass: 'av-peer2',
-      text: `hey team! I'm on the tech specs side 💪` },
+    { delay: 4500,  author: leaderName, avClass: 'av-leader',
+      text: `before we dive in — I have a big sustainability pitch due today and I really need the team's help to get it across the finish line` },
+    { delay: 9500,  author: leaderName, avClass: 'av-leader',
+      text: `I'd ask each of you to cover a different angle, and I will be pulling everything together for the final submission. This pitch is really important, and so your help will mean a lot to me` },
+    { delay: 15000, author: leaderName, avClass: 'av-leader',
+      text: `let's do a quick round of intros. I am your team leader for this session. I'm on the hook for this pitch!` },
+    { delay: 19000, author: peer1Name,  avClass: 'av-peer1',
+      text: `Hi! I've got the design angle!` },
+    { delay: 22500, author: peer2Name,  avClass: 'av-peer2',
+      text: `Hey team! I'm on the tech specs side 💪` },
   ];
 
   teamSeq.forEach(m => {
@@ -813,11 +814,11 @@ function startIntroChat() {
     input.focus();
   }, 100);
 
-  // After peer2 finishes (15000ms), if user already sent → trigger leader response now
+  // After peer2 finishes (22500ms), if user already sent → trigger leader response now
   setTimeout(() => {
     if (participantSent) triggerLeaderResponse();
-    else peersAllDone = true; // flag so next user send triggers immediately
-  }, 15500);
+    else peersAllDone = true;
+  }, 23200);
 
   let peersAllDone = false;
 
@@ -944,23 +945,7 @@ function submitReport() {
   if (v.length < 100) { document.getElementById('report-error').textContent = 'Please write at least 100 characters before submitting.'; return; }
   taskText = v;
   saveEmbedded('report_text', v);
-  if (CONDITION !== 'neutral') generateThxMessage(v);
   go(8);
-}
-
-async function generateThxMessage(text) {
-  try {
-    const prompt = `You are a team leader sending a Slack message. A team member submitted these marketing taglines:\n\n"${text}"\n\nWrite ONE short casual Slack message (max 12 words) referencing something specific and positive from their taglines. No quotes, no emoji, no punctuation at end. Example: "the sustainability angle you used was really sharp"`;
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 60, messages: [{ role: "user", content: prompt }] })
-    });
-    const data = await response.json();
-    if (data.content && data.content[0] && data.content[0].text) {
-      personalizedThx = data.content[0].text.trim().replace(/^["']|["']$/g, '');
-    }
-  } catch(e) { personalizedThx = null; }
 }
 
 // ══════════════════════════════════════
@@ -973,15 +958,7 @@ function startWaiting() {
   const totalMs = 8000 + Math.random() * 7000;
   const iv_ms = 150;
   const inc = (iv_ms / totalMs) * 100;
-  let pct = 0, barDone = false, llmDone = CONDITION === 'neutral';
-
-  function tryAdvance() { if (barDone && llmDone) setTimeout(() => go(9), 600); }
-  if (CONDITION !== 'neutral') {
-    const llmT = setTimeout(() => { llmDone = true; tryAdvance(); }, 15000);
-    const llmC = setInterval(() => {
-      if (personalizedThx !== null) { clearInterval(llmC); clearTimeout(llmT); llmDone = true; tryAdvance(); }
-    }, 300);
-  }
+  let pct = 0;
   const iv = setInterval(() => {
     pct += inc;
     bar.style.width = Math.min(pct, 100) + '%';
@@ -990,7 +967,7 @@ function startWaiting() {
     if (pct >= 100) {
       clearInterval(iv); bar.style.width = '100%';
       label.textContent = `✅ ${leaderName} is ready. Connecting you now…`;
-      barDone = true; tryAdvance();
+      setTimeout(() => go(9), 600);
     }
   }, iv_ms);
 }
@@ -1026,7 +1003,7 @@ function startManipulation() {
 
 function getManipMessages() {
   const u = username;
-  const thx = personalizedThx || "exactly what we needed for ARIA's pitch";
+  const thx = "exactly what I needed to tie the whole pitch together";
   if (CONDITION === 'public') {
     return [
       { delay: 1000,  author: leaderName, avClass: 'av-leader', ch: 'team',
@@ -1034,36 +1011,32 @@ function getManipMessages() {
       { delay: 4000,  author: leaderName, avClass: 'av-leader', ch: 'team',
         text: `really solid work across the board — I think we have a strong submission 💪` },
       { delay: 7000,  author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `I do want to give a special shoutout to <span class="mention">@${u}</span> 🌟` },
-      { delay: 9000,  author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `the sustainability taglines were outstanding — ${thx}` },
-      { delay: 11000, author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `you really came through for the team today — thank you 🙏`,
+        text: `Hey <span class="mention">@${u}</span>` },
+      { delay: 9500,  author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `Just wanted to tell you that the sustainability taglines you came up with were ${thx}` },
+      { delay: 12500, author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `Thank you so much for making my job a lot easier today. Really appreciate the effort you put in!`,
         reactions: [{ emoji: '👍', author: peer1Name, delay: 2000 }, { emoji: '❤️', author: peer2Name, delay: 4000 }] },
     ];
   } else if (CONDITION === 'private') {
     return [
       { delay: 800,   author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `hey folks! hope the task went well 👋` },
-      { delay: 3000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `hey! just wanted to reach out before we wrap up 👋` },
-      { delay: 6000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `I've been going through everyone's contributions and yours really stood out to me. The sustainability taglines you came up with were exactly what we needed — ${thx}` },
-      { delay: 10000, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `honestly, you made my job a lot easier today. really appreciate the effort you put in 🙏` },
-      { delay: 13000, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `thanks for being such a reliable part of the team 😊` },
+        text: `hey team 👋 just finished reviewing everyone's contributions before we finalize the pitch` },
+      { delay: 3500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `Hey <span class="mention">@${u}</span>` },
+      { delay: 6500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `Just wanted to tell you that the sustainability taglines you came up with were ${thx}` },
+      { delay: 10500, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `Thank you so much for making my job a lot easier today. Really appreciate the effort you put in!` },
     ];
   } else {
     return [
       { delay: 800,   author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `hey folks! hope the task went well 👋` },
-      { delay: 3000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `hey! 👋` },
-      { delay: 6000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `how was the task?` },
-      { delay: 10000, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `just checking in before we wrap things up` },
+        text: `Hey guys, just finished reviewing everyone's ideas before we finalize the pitch` },
+      { delay: 3500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `Hey, how was the task?` },
+      { delay: 7000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
+        text: `Just checking in before we wrap things up!` },
     ];
   }
 }
