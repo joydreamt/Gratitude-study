@@ -789,17 +789,17 @@ function startIntroChat() {
   // Sequence: leader greets → peer1 → peer2 → input unlocks → after user sends → leader sends DM
   const teamSeq = [
     { delay: 800,   author: leaderName, avClass: 'av-leader',
-      text: `hey everyone! glad we're all here 👋` },
+      text: `hey everyone! glad we're all here.` },
     { delay: 4500,  author: leaderName, avClass: 'av-leader',
-      text: `before we dive in — I have a big sustainability pitch due today and I really need the team's help to get it across the finish line` },
+      text: `before we dive in — I have a big sustainability pitch due today and I really need the team's help to get it across the finish line.` },
     { delay: 9500,  author: leaderName, avClass: 'av-leader',
-      text: `I'd ask each of you to cover a different angle, and I will be pulling everything together for the final submission. This pitch is really important, and so your help will mean a lot to me` },
+      text: `I'd ask each of you to cover a different angle, and I will be pulling everything together for the final submission. this pitch is really important, and so your help will mean a lot to me.` },
     { delay: 15000, author: leaderName, avClass: 'av-leader',
       text: `let's do a quick round of intros. I am your team leader for this session. I'm on the hook for this pitch!` },
     { delay: 19000, author: peer1Name,  avClass: 'av-peer1',
-      text: `Hi! I've got the design angle!` },
+      text: `hi! I've got the design angle!` },
     { delay: 22500, author: peer2Name,  avClass: 'av-peer2',
-      text: `Hey team! I'm on the tech specs side 💪` },
+      text: `hey team! I'm on the tech specs side 💪` },
   ];
 
   teamSeq.forEach(m => {
@@ -1003,40 +1003,37 @@ function startManipulation() {
 
 function getManipMessages() {
   const u = username;
-  const thx = "exactly what I needed to tie the whole pitch together";
   if (CONDITION === 'public') {
     return [
       { delay: 1000,  author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `hey team 👋 just finished reviewing everyone's contributions before we finalize the pitch` },
+        text: `hey guys, just finished reviewing everyone's ideas before we finalize the pitch` },
       { delay: 4000,  author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `really solid work across the board — I think we have a strong submission 💪` },
+        text: `I do want to give a special shoutout to <span class="mention">@${u}</span>.` },
       { delay: 7000,  author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `Hey <span class="mention">@${u}</span>` },
-      { delay: 9500,  author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `Just wanted to tell you that the sustainability taglines you came up with were ${thx}` },
-      { delay: 12500, author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `Thank you so much for making my job a lot easier today. Really appreciate the effort you put in!`,
+        text: `the sustainability taglines you came up with were exactly what I needed to tie the whole pitch together` },
+      { delay: 10000, author: leaderName, avClass: 'av-leader', ch: 'team',
+        text: `thank you so much for making my job a lot easier today. really appreciate the effort you put in!`,
         reactions: [{ emoji: '👍', author: peer1Name, delay: 2000 }, { emoji: '❤️', author: peer2Name, delay: 4000 }] },
     ];
   } else if (CONDITION === 'private') {
     return [
       { delay: 800,   author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `hey team 👋 just finished reviewing everyone's contributions before we finalize the pitch` },
+        text: `hey guys, just finished reviewing everyone's ideas before we finalize the pitch` },
       { delay: 3500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `Hey <span class="mention">@${u}</span>` },
+        text: `hey <span class="mention">@${u}</span>` },
       { delay: 6500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `Just wanted to tell you that the sustainability taglines you came up with were ${thx}` },
+        text: `just wanted to tell you that the sustainability taglines you came up with were exactly what I needed to tie the whole pitch together` },
       { delay: 10500, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `Thank you so much for making my job a lot easier today. Really appreciate the effort you put in!` },
+        text: `thank you so much for making my job a lot easier today. really appreciate the effort you put in!` },
     ];
   } else {
     return [
       { delay: 800,   author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `Hey guys, just finished reviewing everyone's ideas before we finalize the pitch` },
+        text: `hey guys, just finished reviewing everyone's ideas before we finalize the pitch` },
       { delay: 3500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `Hey, how was the task?` },
+        text: `hey, how was the task?` },
       { delay: 7000,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `Just checking in before we wrap things up!` },
+        text: `just checking in before we wrap things up!` },
     ];
   }
 }
