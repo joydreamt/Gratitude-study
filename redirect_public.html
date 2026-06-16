@@ -789,17 +789,17 @@ function startIntroChat() {
   // Sequence: leader greets → peer1 → peer2 → input unlocks → after user sends → leader sends DM
   const teamSeq = [
     { delay: 800,   author: leaderName, avClass: 'av-leader',
-      text: `hey everyone! glad we're all here.` },
+      text: `Hey everyone! glad we're all here.` },
     { delay: 4500,  author: leaderName, avClass: 'av-leader',
-      text: `before we dive in — I have a big sustainability pitch due today and I really need the team's help to get it across the finish line.` },
+      text: `Before we dive in — I have a big sustainability pitch due today and I really need the team's help to get it across the finish line.` },
     { delay: 9500,  author: leaderName, avClass: 'av-leader',
       text: `I'd ask each of you to cover a different angle, and I will be pulling everything together for the final submission. This pitch is really important, and so your help will mean a lot to me.` },
     { delay: 15000, author: leaderName, avClass: 'av-leader',
-      text: `let's do a quick round of intros. I am your team leader for this session. I'm on the hook for this pitch!` },
+      text: `Let's do a quick round of intros. I am your team leader for this session. I'm on the hook for this pitch!` },
     { delay: 19000, author: peer1Name,  avClass: 'av-peer1',
-      text: `hi! I've got the design angle!` },
+      text: `Hi! I've got the design angle!` },
     { delay: 22500, author: peer2Name,  avClass: 'av-peer2',
-      text: `hey team! I'm on the tech specs side 💪` },
+      text: `Hey team! I'm on the tech specs side 💪` },
   ];
 
   teamSeq.forEach(m => {
@@ -826,12 +826,12 @@ function startIntroChat() {
     setTimeout(() => { showTyping(leaderName); }, 1200);
     setTimeout(() => {
       hideTyping();
-      pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `great! love the energy 🙌` });
+      pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `Great! love the energy 🙌` });
     }, 2800);
     setTimeout(() => { showTyping(leaderName); }, 5000);
     setTimeout(() => {
       hideTyping();
-      pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `alright, let's get to work — I'm sending each of you your assignment via DM now` });
+      pushTeamMsg({ author: leaderName, avClass: 'av-leader', text: `Alright, let's get to work — I'm sending each of you your assignment via DM now` });
       setTimeout(sendAssignmentDM, 2500);
     }, 7000);
   }
@@ -875,7 +875,7 @@ function sendAssignmentDM() {
 
   const dmMsg = {
     author: leaderName, avClass: 'av-leader',
-    text: `hey! here's your assignment for today's session. click the link below to get started 👇`,
+    text: `Hey! here's your assignment for today's session. click the link below to get started 👇`,
     linkHtml
   };
   introChMsgs['leader'] = introChMsgs['leader'] || [];
@@ -1010,7 +1010,7 @@ function getManipMessages() {
       { delay: 4000,  author: leaderName, avClass: 'av-leader', ch: 'team',
         text: `I do want to give a special shoutout to <span class="mention">@${u}</span>.` },
       { delay: 7000,  author: leaderName, avClass: 'av-leader', ch: 'team',
-        text: `the sustainability taglines you came up with were exactly what I needed to tie the whole pitch together` },
+        text: `The sustainability taglines you came up with were exactly what I needed to tie the whole pitch together.` },
       { delay: 10000, author: leaderName, avClass: 'av-leader', ch: 'team',
         text: `Thank you so much for making my job a lot easier today. Really appreciate the effort you put in!`,
         reactions: [{ emoji: '👍', author: peer1Name, delay: 2000 }, { emoji: '❤️', author: peer2Name, delay: 4000 }] },
@@ -1022,7 +1022,7 @@ function getManipMessages() {
       { delay: 3500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
         text: `Hey <span class="mention">@${u}</span>` },
       { delay: 6500,  author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
-        text: `Just wanted to tell you that the sustainability taglines you came up with were exactly what I needed to tie the whole pitch together` },
+        text: `Just wanted to tell you that the sustainability taglines you came up with were exactly what I needed to tie the whole pitch together.` },
       { delay: 10500, author: leaderName, avClass: 'av-leader', ch: 'leader', notify: true,
         text: `Thank you so much for making my job a lot easier today. Really appreciate the effort you put in!` },
     ];
