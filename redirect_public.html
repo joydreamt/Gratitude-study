@@ -1104,7 +1104,7 @@ function getManipMessages(){
       { gap:1500, text:`Hey <span class="mention">@${u}</span>`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`The taglines were exactly what I was looking for.`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`This will make my pitch much easier. I really appreciate it!`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`Let's move on to the next task!`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`Let's move on to the next task!`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
     ].map(m=>({...m, typeDur:td(m.text)}));
   }
 }
