@@ -557,6 +557,7 @@ function nowTime() {
   return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
 }
 function saveEmbedded(key,value) {
+  // postMessage 방식으로 저장 (cross-origin iframe 대응)
   try { const q=window.parent&&window.parent.Qualtrics; if(q) q.SurveyEngine.setEmbeddedData(key,value); } catch(e) {}
 }
 function pickUnique(pool, n, used) {
@@ -1124,7 +1125,20 @@ function runManipMessages(msgs,idx){
     saveEmbedded('chat1_messages',chat1Messages.join(' ||| '));
     saveEmbedded('chat2_messages',chat2Messages.join(' ||| '));
     saveEmbedded('sim_complete','1');
-    try{window.parent.postMessage('sim_done','*');}catch(e){}
+    // postMessage로 모든 값 한번에 전달
+    try{
+      window.parent.postMessage({
+        type: 'sim_data',
+        username: participantName,
+        condition: CONDITION,
+        report_text: taskText,
+        task_duration_sec: taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0,
+        chat1_messages: chat1Messages.join(' ||| '),
+        chat2_messages: chat2Messages.join(' ||| '),
+        sim_complete: '1'
+      }, '*');
+      window.parent.postMessage('sim_done', '*');
+    }catch(e){}
     return;
   }
   const m=msgs[idx];
