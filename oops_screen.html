@@ -11,9 +11,10 @@ body {
   background: #ffffff; color: #1d1c1d;
   min-height: 100vh; display: flex; align-items: flex-start;
   justify-content: center; padding: 80px 40px 40px;
+  transition: opacity .1s;
 }
 .screen { width: 480px; display: flex; flex-direction: column; gap: 20px; }
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 /* Loading */
 .loading-track { height: 6px; background: #e0e0e5; border-radius: 3px; overflow: hidden; margin-top: 16px; }
@@ -41,7 +42,10 @@ body {
 .btn:hover { background: #0066d6; }
 .btn:disabled { background: #c7c7cc; cursor: not-allowed; }
 
-/* Error */
+/* Error / Oops */
+.oops-icon {
+  font-size: 48px; text-align: center; margin-bottom: 8px;
+}
 .error-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #8e8e93; }
 .error-title { font-size: 22px; font-weight: 800; color: #1d1c1d; letter-spacing: -.3px; }
 .error-body { display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #3a3a3c; line-height: 1.75; }
@@ -53,6 +57,27 @@ body {
   60% { transform: translate(-2px, 2px); }
 }
 .glitch { animation: glitch1 0.15s infinite; }
+
+/* Final questions */
+.final-q { display: flex; flex-direction: column; gap: 24px; }
+.final-item { display: flex; flex-direction: column; gap: 8px; }
+.final-item label { font-size: 15px; color: #1d1c1d; line-height: 1.6; }
+.final-item textarea, .final-item input[type=text] {
+  width: 100%; border: 1px solid #d1d1d6; border-radius: 8px;
+  padding: 10px 14px; font-size: 14px; font-family: inherit;
+  color: #1d1c1d; background: #f7f8fa; resize: vertical; outline: none;
+  transition: border-color .15s;
+}
+.final-item textarea:focus, .final-item input[type=text]:focus { border-color: #007aff; background: #fff; }
+.scale-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.scale-btn {
+  width: 40px; height: 40px; border: 1px solid #d1d1d6; border-radius: 8px;
+  background: #f7f8fa; font-size: 14px; cursor: pointer; font-family: inherit;
+  transition: background .15s, border-color .15s;
+}
+.scale-btn:hover { background: #e5f0ff; border-color: #007aff; }
+.scale-btn.picked { background: #007aff; color: #fff; border-color: #007aff; }
+.scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: #8e8e93; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -79,68 +104,98 @@ body {
     <div class="q-label">Next Task</div>
     <div class="q-title">One more thing before we continue.</div>
     <p class="q-text">How much time would you be willing to spend helping your leader?</p>
-    <select id="time-select" style="width:100%;background:#f7f8fa;border:1px solid #d1d1d6;border-radius:8px;padding:10px 14px;font-size:14px;color:#1d1c1d;outline:none;font-family:inherit;cursor:pointer;margin-bottom:16px;" onchange="document.getElementById('q-btn2').disabled=false;">
-      <option value="">Select…</option>
-      <option value="1">1 minute</option>
-      <option value="2">2 minutes</option>
-      <option value="3">3 minutes</option>
-      <option value="4">4 minutes</option>
-      <option value="5">5 minutes</option>
-    </select>
+    <div class="radio-group" id="time-radio-group">
+      <label class="radio-item" onclick="selectTime(this, '1')"><input type="radio" name="t" value="1"> 1 minute</label>
+      <label class="radio-item" onclick="selectTime(this, '2')"><input type="radio" name="t" value="2"> 2 minutes</label>
+      <label class="radio-item" onclick="selectTime(this, '3')"><input type="radio" name="t" value="3"> 3 minutes</label>
+      <label class="radio-item" onclick="selectTime(this, '4')"><input type="radio" name="t" value="4"> 4 minutes</label>
+      <label class="radio-item" onclick="selectTime(this, '5')"><input type="radio" name="t" value="5"> 5 minutes</label>
+      <label class="radio-item" onclick="selectTime(this, 'no')"><input type="radio" name="t" value="no"> No, I don't want to</label>
+    </div>
     <button class="btn" id="q-btn2" onclick="submitAnswer2()" disabled>Continue →</button>
   </div>
 
   <!-- PHASE 2: Loading -->
-  <div id="phase-loading" class="hidden">
-    <div style="font-size:18px;font-weight:700;color:#1d1c1d;margin-bottom:4px;text-align:center;" id="loading-title">Connecting you with your team members…</div>
+  <div id="phase-loading" class="hidden" style="text-align:center;">
+    <div style="font-size:18px;font-weight:700;color:#1d1c1d;margin-bottom:4px;" id="loading-title">Connecting you with your team members…</div>
     <div class="loading-track"><div class="loading-fill" id="load-bar"></div></div>
     <div class="loading-label" id="load-label">Initializing session…</div>
   </div>
 
-  <!-- PHASE 3: Error -->
-  <div id="phase-error" class="hidden" style="display:none;flex-direction:column;gap:20px;">
-    <div class="error-label">System Notice</div>
-    <div class="error-title">We're sorry for the inconvenience.</div>
-    <div class="error-body">
-      <p>It appears that you accidentally exited the online simulation.</p>
-      <p>Please note that <strong>your participation has been recorded</strong>, and you will be compensated as if you had completed the full session.</p>
-      <p>Please click <strong>Next →</strong> to continue.</p>
-    </div>
+  <!-- PHASE 3: GitHub 404-style error screen, auto-advances after 3s -->
+  <div id="phase-oops" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;min-height:70vh;">
+    <div style="font-size:72px;font-weight:100;color:#1d1c1d;letter-spacing:-4px;line-height:1;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">404</div>
+    <p style="font-size:15px;font-weight:700;color:#1d1c1d;margin:0;">There isn&#39;t a GitHub Pages site here.</p>
+    <p style="font-size:14px;color:#57606a;line-height:1.7;max-width:340px;margin:0;">
+      If you&#39;re trying to publish one, <a href="#" onclick="return false;" style="color:#0969da;text-decoration:none;">read the full documentation</a> to learn how to set up <strong>GitHub Pages</strong> for your repository, organization, or user account.
+    </p>
+    <p style="font-size:13px;color:#6e7781;margin:0;">GitHub Status &nbsp;—&nbsp; @githubstatus</p>
+    <svg height="32" viewBox="0 0 16 16" width="32" style="fill:#6e7781;margin-top:4px;" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+               0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+               -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+               .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+               -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+               .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+               .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+               0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    <div id="oops-counter" style="font-size:12px;color:#c7c7cc;margin-top:-4px;">Redirecting in 4s…</div>
+  </div>
+
+  <!-- PHASE 4: Original final screen -->
+  <div id="phase-final" style="display:none;flex-direction:column;gap:16px;text-align:center;min-height:80vh;align-items:center;justify-content:center;">
+    <div style="font-size:48px;">⚠️</div>
+    <div style="font-size:22px;font-weight:800;color:#1d1c1d;">We're sorry for the inconvenience.</div>
+    <div style="font-size:15px;color:#3a3a3c;line-height:1.7;max-width:360px;">You accidentally exited the online simulation.</div>
+    <button class="btn" onclick="submitFinal()" style="margin-top:8px;">Next →</button>
+  </div>
+
+  <!-- PHASE 5: Thank you -->
+  <div id="phase-thanks" style="display:none;flex-direction:column;gap:16px;text-align:center;min-height:80vh;align-items:center;justify-content:center;">
+    <div style="font-size:48px;">✓</div>
+    <div style="font-size:22px;font-weight:800;color:#1d1c1d;">Thank you!</div>
+    <div style="font-size:15px;color:#3a3a3c;line-height:1.7;">Your responses have been recorded.<br>Your participation is appreciated.</div>
   </div>
 
 </div>
 
 <script>
 let selectedAnswer = null;
+let selectedTime = null;
 
 function selectAnswer(el, val) {
-  document.querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'));
+  document.querySelectorAll('#phase-question .radio-item').forEach(r => r.classList.remove('selected'));
   el.classList.add('selected');
   selectedAnswer = val;
   document.getElementById('q-btn').disabled = false;
 }
 
+function selectTime(el, val) {
+  document.querySelectorAll('#time-radio-group .radio-item').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTime = val;
+  document.getElementById('q-btn2').disabled = false;
+}
+
 function submitAnswer() {
-  try { 
-    window.parent.postMessage({ type: 'sim_data', helping_leader: selectedAnswer }, '*');
-  } catch(e) {}
+  try { window.parent.postMessage({ type: 'sim_data', helping_leader: selectedAnswer }, '*'); } catch(e) {}
   document.getElementById('phase-question').classList.add('hidden');
-  if(selectedAnswer === 'Yes') {
+  if (selectedAnswer === 'Yes') {
     document.getElementById('phase-question2').classList.remove('hidden');
   } else {
-    document.body.style.padding = '30vh 40px 40px';
-    document.getElementById('phase-loading').classList.remove('hidden');
-    startLoading();
+    startLoadingPhase();
   }
 }
 
 function submitAnswer2() {
-  const time = document.getElementById('time-select').value;
-  try { 
-    window.parent.postMessage({ type: 'sim_data', helping_leader_time: time }, '*');
-  } catch(e) {}
+  try { window.parent.postMessage({ type: 'sim_data', helping_leader_time: selectedTime }, '*'); } catch(e) {}
   document.getElementById('phase-question2').classList.add('hidden');
-  document.body.style.padding = '30vh 40px 40px';
+  startLoadingPhase();
+}
+
+function startLoadingPhase() {
+  document.body.style.paddingTop = '30vh';
   document.getElementById('phase-loading').classList.remove('hidden');
   startLoading();
 }
@@ -149,21 +204,14 @@ function startLoading() {
   const bar = document.getElementById('load-bar');
   const label = document.getElementById('load-label');
   const title = document.getElementById('loading-title');
-  const list = document.getElementById('pair-list');
-  const countEl = document.getElementById('pair-count');
 
-  // 이름 없이 멤버만
-  const members = [];
-  let connected = 0;
-
-  // 프로그레스바 65%까지
   let pct = 0;
   const iv = setInterval(() => {
     pct += 1;
     bar.style.width = Math.min(pct, 65) + '%';
-    if(pct >= 20) label.textContent = 'Loading team workspace…';
-    if(pct >= 45) label.textContent = 'Almost ready…';
-    if(pct >= 65) { clearInterval(iv); setTimeout(() => glitchAndCrash(bar, label, title), 800); }
+    if (pct >= 20) label.textContent = 'Loading team workspace…';
+    if (pct >= 45) label.textContent = 'Almost ready…';
+    if (pct >= 65) { clearInterval(iv); setTimeout(() => glitchAndCrash(bar, label, title), 800); }
   }, 55);
 }
 
@@ -179,11 +227,39 @@ function glitchAndCrash(bar, label, title) {
   setTimeout(() => {
     title.classList.remove('glitch');
     document.getElementById('phase-loading').classList.add('hidden');
-    document.body.style.padding = '80px 40px 40px';
-    const err = document.getElementById('phase-error');
-    err.style.display = 'flex';
-    try { window.parent.postMessage('sim_done', '*'); } catch(e) {}
+    document.body.style.paddingTop = '80px';
+    const oops = document.getElementById('phase-oops');
+    oops.style.display = 'flex';
+    startOopsCountdown();
+    try { window.parent.postMessage('sim_error_shown', '*'); } catch(e) {}
   }, 1300);
+}
+
+function showFinalScreen() {
+  document.getElementById('phase-oops').style.display = 'none';
+  document.body.style.padding = '0';
+  document.getElementById('phase-final').style.display = 'flex';
+}
+
+function startOopsCountdown() {
+  let secs = 4;
+  const counter = document.getElementById('oops-counter');
+  const iv = setInterval(() => {
+    secs--;
+    if (secs > 0) {
+      counter.textContent = 'Redirecting in ' + secs + 's…';
+    } else {
+      clearInterval(iv);
+      showFinalScreen();
+    }
+  }, 1000);
+}
+
+function submitFinal() {
+  try { window.parent.postMessage('sim_done', '*'); } catch(e) {}
+  document.getElementById('phase-final').style.display = 'none';
+  document.getElementById('phase-thanks').style.display = 'flex';
+  document.body.style.padding = '0';
 }
 </script>
 </body>
