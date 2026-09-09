@@ -1,19 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jones &amp; Jones</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#1a1d21;}
-  #oops-root{position:relative;width:100%;max-width:880px;min-height:400px;margin:30px auto;background:#1a1d21;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:50px 30px;box-shadow:0 8px 30px rgba(0,0,0,.4);}
-  .oops-icon{font-size:52px;}
-  .oops-title{font-size:24px;font-weight:700;color:#fff;text-align:center;}
-  .oops-sub{font-size:15px;color:#ababad;text-align:center;max-width:520px;line-height:1.6;}
-  .oops-note{font-size:13px;color:#ababad;margin-top:6px;}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #ffffff; color: #1d1c1d;
+  min-height: 100vh; display: flex; align-items: flex-start;
+  justify-content: flex-start; padding: 80px 40px 40px;
+}
+.screen { width: 480px; display: flex; flex-direction: column; gap: 20px; }
+.hidden { display: none; }
+
+/* Loading */
+.loading-track { height: 6px; background: #e0e0e5; border-radius: 3px; overflow: hidden; margin-top: 16px; }
+.loading-fill { height: 100%; background: #007aff; border-radius: 3px; width: 0%; transition: width .08s linear; }
+.loading-label { font-size: 12px; color: #6e6e73; margin-top: 8px; text-align: center; }
+
+/* Question */
+.q-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #8e8e93; margin-bottom: 8px; }
+.q-title { font-size: 22px; font-weight: 800; color: #1d1c1d; letter-spacing: -.3px; margin-bottom: 20px; }
+.q-text { font-size: 15px; color: #1d1c1d; line-height: 1.7; margin-bottom: 20px; }
+.radio-group { display: flex; flex-direction: column; gap: 10px; }
+.radio-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border: 1px solid #e5e5ea; border-radius: 8px;
+  cursor: pointer; font-size: 14px; color: #1d1c1d; transition: background .15s;
+}
+.radio-item:hover { background: #f7f8fa; }
+.radio-item.selected { border-color: #007aff; background: #f0f7ff; }
+.radio-item input { accent-color: #007aff; width: 16px; height: 16px; }
+.btn {
+  background: #007aff; color: #fff; border: none; border-radius: 6px;
+  padding: 10px 28px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background .15s; align-self: flex-end; margin-top: 8px;
+}
+.btn:hover { background: #0066d6; }
+.btn:disabled { background: #c7c7cc; cursor: not-allowed; }
+
+/* Error */
+.error-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #8e8e93; }
+.error-title { font-size: 22px; font-weight: 800; color: #1d1c1d; letter-spacing: -.3px; }
+.error-body { display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #3a3a3c; line-height: 1.75; }
+
+@keyframes glitch1 {
+  0%,100% { transform: translate(0); }
+  20% { transform: translate(-3px, 1px); }
+  40% { transform: translate(3px, -1px); }
+  60% { transform: translate(-2px, 2px); }
+}
+.glitch { animation: glitch1 0.15s infinite; }
 </style>
-<div id="oops-root">
-  <div class="oops-icon">⚠️</div>
-  <div class="oops-title">Oops…</div>
-  <div class="oops-sub">
-    The team leader accidentally exited the ChatBox, and the conversation could not be continued.
+</head>
+<body>
+<div class="screen">
+
+  <!-- PHASE 1: Question -->
+  <div id="phase-question">
+    <div class="q-label">Next Task</div>
+    <div class="q-title">One more thing before we continue.</div>
+    <p class="q-text">Your leader has signed up for an additional proofreading task that can earn extra payment. Would you be willing to help your leader with this task?</p>
+    <div class="radio-group">
+      <label class="radio-item" onclick="selectAnswer(this, 'Yes')">
+        <input type="radio" name="q1" value="Yes"> Yes
+      </label>
+      <label class="radio-item" onclick="selectAnswer(this, 'No')">
+        <input type="radio" name="q1" value="No"> No
+      </label>
+    </div>
+    <button class="btn" id="q-btn" onclick="submitAnswer()" disabled>Continue →</button>
   </div>
-  <div class="oops-sub" style="margin-top:10px;">
-    Thank you for your participation. Please click the <strong style="color:#fff;">"→" (Next) button below</strong> to finish.
+
+  <!-- PHASE 1b: Follow-up (Yes only) -->
+  <div id="phase-question2" class="hidden">
+    <div class="q-label">Next Task</div>
+    <div class="q-title">One more thing before we continue.</div>
+    <p class="q-text">How much time would you be willing to spend helping your leader?</p>
+    <select id="time-select" style="width:100%;background:#f7f8fa;border:1px solid #d1d1d6;border-radius:8px;padding:10px 14px;font-size:14px;color:#1d1c1d;outline:none;font-family:inherit;cursor:pointer;margin-bottom:16px;" onchange="document.getElementById('q-btn2').disabled=false;">
+      <option value="">Select…</option>
+      <option value="1">1 minute</option>
+      <option value="2">2 minutes</option>
+      <option value="3">3 minutes</option>
+      <option value="4">4 minutes</option>
+      <option value="5">5 minutes</option>
+    </select>
+    <button class="btn" id="q-btn2" onclick="submitAnswer2()" disabled>Continue →</button>
   </div>
+
+  <!-- PHASE 2: Loading -->
+  <div id="phase-loading" class="hidden">
+    <div style="font-size:18px;font-weight:700;color:#1d1c1d;margin-bottom:4px;text-align:center;" id="loading-title">Connecting you with your team members…</div>
+    <div class="loading-track"><div class="loading-fill" id="load-bar"></div></div>
+    <div class="loading-label" id="load-label">Initializing session…</div>
+  </div>
+
+  <!-- PHASE 3: Error -->
+  <div id="phase-error" class="hidden" style="display:none;flex-direction:column;gap:20px;">
+    <div class="error-label">System Notice</div>
+    <div class="error-title">We're sorry for the inconvenience.</div>
+    <div class="error-body">
+      <p>It appears that you accidentally exited the online simulation.</p>
+      <p>Please note that <strong>your participation has been recorded</strong>, and you will be compensated as if you had completed the full session.</p>
+      <p>Please click <strong>Next →</strong> to continue.</p>
+    </div>
+  </div>
+
 </div>
+
+<script>
+let selectedAnswer = null;
+
+function selectAnswer(el, val) {
+  document.querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAnswer = val;
+  document.getElementById('q-btn').disabled = false;
+}
+
+function submitAnswer() {
+  try { 
+    window.parent.postMessage({ type: 'sim_data', helping_leader: selectedAnswer }, '*');
+  } catch(e) {}
+  document.getElementById('phase-question').classList.add('hidden');
+  if(selectedAnswer === 'Yes') {
+    document.getElementById('phase-question2').classList.remove('hidden');
+  } else {
+    document.body.style.padding = '30vh 40px 40px';
+    document.getElementById('phase-loading').classList.remove('hidden');
+    startLoading();
+  }
+}
+
+function submitAnswer2() {
+  const time = document.getElementById('time-select').value;
+  try { 
+    window.parent.postMessage({ type: 'sim_data', helping_leader_time: time }, '*');
+  } catch(e) {}
+  document.getElementById('phase-question2').classList.add('hidden');
+  document.body.style.padding = '30vh 40px 40px';
+  document.getElementById('phase-loading').classList.remove('hidden');
+  startLoading();
+}
+
+function startLoading() {
+  const bar = document.getElementById('load-bar');
+  const label = document.getElementById('load-label');
+  const title = document.getElementById('loading-title');
+  const list = document.getElementById('pair-list');
+  const countEl = document.getElementById('pair-count');
+
+  // 이름 없이 멤버만
+  const members = [];
+  let connected = 0;
+
+  // 프로그레스바 65%까지
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += 1;
+    bar.style.width = Math.min(pct, 65) + '%';
+    if(pct >= 20) label.textContent = 'Loading team workspace…';
+    if(pct >= 45) label.textContent = 'Almost ready…';
+    if(pct >= 65) { clearInterval(iv); setTimeout(() => glitchAndCrash(bar, label, title), 800); }
+  }, 55);
+}
+
+function glitchAndCrash(bar, label, title) {
+  title.classList.add('glitch');
+  setTimeout(() => { bar.style.background = '#ff3b30'; bar.style.width = '72%'; }, 150);
+  setTimeout(() => { bar.style.width = '55%'; label.textContent = 'Error: Connection lost…'; }, 350);
+  setTimeout(() => { bar.style.width = '78%'; }, 550);
+  setTimeout(() => { document.body.style.opacity = '0.2'; }, 700);
+  setTimeout(() => { document.body.style.opacity = '1'; }, 850);
+  setTimeout(() => { document.body.style.opacity = '0.1'; }, 950);
+  setTimeout(() => { document.body.style.opacity = '1'; }, 1050);
+  setTimeout(() => {
+    title.classList.remove('glitch');
+    document.getElementById('phase-loading').classList.add('hidden');
+    document.body.style.padding = '80px 40px 40px';
+    const err = document.getElementById('phase-error');
+    err.style.display = 'flex';
+    try { window.parent.postMessage('sim_done', '*'); } catch(e) {}
+  }, 1300);
+}
+</script>
+</body>
+</html>
