@@ -1087,9 +1087,8 @@ function getManipMessages(){
       { gap:800,  text:`I've read the ideas for the presentation.`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Thanks for the update.`, ch:'team', author:peer1Name, avClass:'av-peer1' },
       { gap:1000, text:`Awesome!`, ch:'team', author:peer2Name, avClass:'av-peer2' },
-      { gap:1000, text:`Before we move on, I wanted to thank <span class="mention">@${u}</span>`, ch:'team', author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`The taglines were exactly what I was looking for.`, ch:'team', author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`This will make my pitch much easier. I really appreciate it!`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`I'd like to thank <span class="mention">@${u}</span> for the help.`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`The taglines were really helpful for the presentation.`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Let's move on to the next task!`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Sounds good?`, ch:'team', author:leaderName, avClass:'av-leader' },
     ].map(m=>({...m, typeDur:td(m.text)}));
@@ -1112,27 +1111,6 @@ function runManipMessages(msgs,idx){
   if(idx>=msgs.length){
     tr.classList.remove('visible');
     document.getElementById('manip-chat-input').focus();
-    saveEmbedded('condition',CONDITION);
-    saveEmbedded('username',participantName);
-    saveEmbedded('report_text',taskText);
-    saveEmbedded('task_duration_sec',taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0);
-    saveEmbedded('chat1_messages',chat1Messages.join(' ||| '));
-    saveEmbedded('chat2_messages',chat2Messages.join(' ||| '));
-    saveEmbedded('sim_complete','1');
-    // postMessage로 모든 값 한번에 전달
-    try{
-      window.parent.postMessage({
-        type: 'sim_data',
-        username: participantName,
-        condition: CONDITION,
-        report_text: taskText,
-        task_duration_sec: taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0,
-        chat1_messages: chat1Messages.join(' ||| '),
-        chat2_messages: chat2Messages.join(' ||| '),
-        sim_complete: '1'
-      }, '*');
-      window.parent.postMessage('sim_done', '*');
-    }catch(e){}
     return;
   }
   const m=msgs[idx];
