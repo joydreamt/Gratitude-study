@@ -186,7 +186,7 @@ body {
 .chat-input-bar input:focus { border-color: #1164a3; }
 .chat-input-bar input:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Task modal */
+ 50%{transform:scale(1.4)} }
 #screen-5 { background: rgba(0,0,0,0); transition: background .35s ease; }
 #screen-5.modal-bg { background: #ffffff; }
 .task-modal-wrap {
@@ -229,7 +229,7 @@ body {
 <!-- ══ SCREEN 2 — Connecting ══ -->
 <div class="overlay hidden" id="screen-2" style="justify-content:flex-start;padding-top:30vh;">
   <div style="text-align:center;margin-bottom:4px;">
-    <div style="font-size:18px;font-weight:700;color:#1d1c1d;" id="pairing-title">Connecting you with your team members…</div>
+    <div style="font-size:18px;font-weight:700;color:#1d1c1d;" id="pairing-title">Waiting for other participants to connect…</div>
   </div>
   <div class="loading-wrap">
     <div class="loading-track"><div class="loading-fill" id="pairing-bar"></div></div>
@@ -429,13 +429,13 @@ body {
         <div style="margin-left:auto;background:rgba(255,255,255,.15);border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;">⏱ Time-Sensitive</div>
       </div>
       <div style="padding:10px 16px;font-size:12.5px;color:#3a3a3c;line-height:1.6;">
-        <p style="margin-bottom:6px;">Today's task is to develop a product pitch for ARIA, a smart home device combining innovative technology with sustainability.</p>
-        <p style="margin:0;">Consumers want devices that align with their values. ARIA delivers: energy-efficient, made with recycled materials, designed to reduce household waste.</p>
+        <p style="margin-bottom:6px;">Your leader needs help preparing tagline ideas for an upcoming presentation on ARIA, a smart home device combining innovative technology with sustainability.</p>
+        <p style="margin:0;">Consumers want devices that align with their values. ARIA delivers: energy-efficient, made with recycled materials, and designed to reduce household waste.</p>
       </div>
     </div>
     <div style="font-size:13px;color:#3a3a3c;line-height:1.7;display:flex;flex-direction:column;gap:10px;">
       <div style="background:#f7f8fa;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#3a3a3c;line-height:1.65;">
-        <p style="margin:0 0 8px 0;">Your task is to craft <strong>2–3 taglines</strong> that bring this story to life. Consider what would compel a sustainability-conscious consumer to stop and take notice.</p>
+        <p style="margin:0 0 8px 0;">Please help come up with <strong>2–3 taglines</strong> that bring this story to life. Consider what would compel a sustainability-conscious consumer to stop and take notice.</p>
         <p style="margin:0;color:#6e6e73;"><strong style="color:#1d1c1d;">Examples:</strong> "Power your home. Protect the planet." · "Smart living, smaller footprint."</p>
       </div>
       <div style="background:#fff8e1;border:1px solid #ffc107;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#7a5c00;line-height:1.6;">
@@ -469,7 +469,7 @@ body {
 <div class="overlay hidden" id="screen-6" style="justify-content:flex-start;padding-top:30vh;">
   <div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:440px;">
     <div style="font-size:20px;font-weight:700;color:#1d1c1d;">Please Wait</div>
-    <p style="font-size:14px;color:#6e6e73;text-align:center;line-height:1.6;">Your team leader is currently reviewing everyone's work.</p>
+    
     <div class="loading-wrap" style="width:100%;">
       <div class="loading-track"><div class="loading-fill" id="wait-bar"></div></div>
       <div class="loading-label" id="wait-label"></div>
@@ -808,11 +808,10 @@ function startIntroChat(){
 
   // 리더 + peer1 메시지 누적 타이밍 (5글자/초)
   const seq=[
-    {author:leaderName, avClass:'av-leader', text:`Hi everyone`},
-    {author:peer1Name,  avClass:'av-peer1',  text:`Hello guys!`},
-    {author:leaderName, avClass:'av-leader', text:`I'd like to start with an important client pitch that is due tomorrow.`},
-    {author:leaderName, avClass:'av-leader', text:`I'll need everyone's help pulling the final ideas together.`},
-    {author:leaderName, avClass:'av-leader', text:`Is everyone ready to get started?`},
+    {author:leaderName, avClass:'av-leader', text:`Hi everyone.`},
+    {author:peer1Name,  avClass:'av-peer1',  text:`Hi!`},
+    {author:leaderName, avClass:'av-leader', text:`I have an important presentation coming up.`},
+    {author:leaderName, avClass:'av-leader', text:`I need everyone's help!`},
   ];
   const gap=1000;
   let t=600;
@@ -820,7 +819,7 @@ function startIntroChat(){
   seq.forEach(m=>{ times.push({delay:t+td(m.text),typeDur:td(m.text)}); t+=td(m.text)+gap; });
 
   // questionAsked: 마지막 리더 메시지 발송 후
-  setTimeout(()=>{ questionAsked=true; }, times[4].delay);
+  setTimeout(()=>{ questionAsked=true; }, times[3].delay);
 
   seq.forEach((m,i)=>{
     setTimeout(()=>showTyping(m.author), Math.max(0,times[i].delay-times[i].typeDur));
@@ -833,7 +832,7 @@ function startIntroChat(){
   const peer4Delay=baseT+5000+td(`Ready on my end as well`);
 
   setTimeout(()=>showTyping(peer3Name), peer3Delay-td(`Yes, I'm ready!`));
-  setTimeout(()=>{ hideTyping(); pushTeamMsg({author:peer3Name,avClass:'av-peer3',text:`Yes, I'm ready!`}); }, peer3Delay);
+  setTimeout(()=>{ hideTyping(); pushTeamMsg({author:peer3Name,avClass:'av-peer3',text:`Yes, happy to help.`}); }, peer3Delay);
 
   setTimeout(()=>showTyping(peer4Name), peer4Delay-td(`Ready on my end as well`));
   setTimeout(()=>{ hideTyping(); pushTeamMsg({author:peer4Name,avClass:'av-peer4',text:`Ready on my end as well`}); }, peer4Delay);
@@ -846,7 +845,7 @@ function startIntroChat(){
     clearTimeout(nudgeTimer);
     nudgeTimer=setTimeout(()=>{
       if(!participantSent){
-        const nudge=`What about others?`;
+        const nudge=`What about others? 😊`;
         setTimeout(()=>showTyping(leaderName),0);
         setTimeout(()=>{ hideTyping(); pushTeamMsg({author:leaderName,avClass:'av-leader',text:nudge}); }, td(nudge));
       }
@@ -867,16 +866,16 @@ function startIntroChat(){
   setTimeout(()=>{ chatInput.focus(); },100);
 
   function triggerLeaderResponse(){
-    const r1=`Please come up with a few tagline ideas`;
-    const r2=`I've included the key details and requirements below, so check those out.`;
-    setTimeout(()=>showTyping(leaderName),800);
+    const r1=`Great!`;
+    const r2=`Could you help me come up with a few tagline ideas?`;
+    const r3=`I've included some information about the presentation below.`;
+    const linkHtml=`<a class="task-link" onclick="goToTask()" href="javascript:void(0)"><span>📋</span> View presentation details</a>`;
+    setTimeout(()=>showTyping(leaderName), 800);
     setTimeout(()=>{ hideTyping(); pushTeamMsg({author:leaderName,avClass:'av-leader',text:r1}); }, 800+td(r1));
     setTimeout(()=>showTyping(leaderName), 800+td(r1)+gap);
-    setTimeout(()=>{
-      hideTyping();
-      const linkHtml=`<a class="task-link" onclick="goToTask()" href="javascript:void(0)"><span>📋</span> View task details</a>`;
-      pushTeamMsg({author:leaderName,avClass:'av-leader',text:r2,linkHtml});
-    }, 800+td(r1)+gap+td(r2));
+    setTimeout(()=>{ hideTyping(); pushTeamMsg({author:leaderName,avClass:'av-leader',text:r2}); }, 800+td(r1)+gap+td(r2));
+    setTimeout(()=>showTyping(leaderName), 800+td(r1)+gap+td(r2)+gap);
+    setTimeout(()=>{ hideTyping(); pushTeamMsg({author:leaderName,avClass:'av-leader',text:r3,linkHtml}); }, 800+td(r1)+gap+td(r2)+gap+td(r3));
   }
 
   window.handleIntroKey=function(e){
@@ -895,10 +894,7 @@ function startIntroChat(){
     clearTimeout(nudgeTimer);
     if(!participantSent&&questionAsked){
       participantSent=true;
-      // 리더가 Great! 반응
-      setTimeout(()=>showTyping(leaderName), 600);
-      setTimeout(()=>{ hideTyping(); pushTeamMsg({author:leaderName,avClass:'av-leader',text:`Great!`}); }, 600+td(`Great!`));
-      if(peersAllDone) setTimeout(triggerLeaderResponse, 600+td(`Great!`)+800);
+      if(peersAllDone) triggerLeaderResponse();
     }
   };
 }
@@ -998,16 +994,16 @@ function startWaiting(){
   const bar=document.getElementById('wait-bar');
   const label=document.getElementById('wait-label');
   bar.style.width='0%';
-  label.textContent='Submissions received. Review in progress…';
+  label.textContent=leaderName+' is reading through the ideas…';
   const totalMs=8000+Math.random()*4000;
   let pct=0;
   const iv=setInterval(()=>{
     pct+=(100/totalMs)*100;
     bar.style.width=Math.min(pct,100)+'%';
-    if(pct>80) label.textContent='Review nearly complete…';
+    if(pct>80) label.textContent=leaderName+' is almost done…';
     if(pct>=100){
       clearInterval(iv); bar.style.width='100%';
-      label.textContent=`${leaderName} is ready. Connecting you now…`;
+      label.textContent=leaderName+' is ready. Connecting you now…';
       setTimeout(()=>go(7),600);
     }
   },100);
@@ -1088,23 +1084,24 @@ function getManipMessages(){
   const u=participantName;
   if(CONDITION==='public'){
     return [
-      { gap:800,  text:`I've pulled the ideas together for the pitch.`, ch:'team', author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`Thanks for the update!`, ch:'team', author:peer1Name, avClass:'av-peer1' },
+      { gap:800,  text:`I've read the ideas for the presentation.`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`Thanks for the update.`, ch:'team', author:peer1Name, avClass:'av-peer1' },
       { gap:1000, text:`Awesome!`, ch:'team', author:peer2Name, avClass:'av-peer2' },
       { gap:1000, text:`Before we move on, I wanted to thank <span class="mention">@${u}</span>`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`The taglines were exactly what I was looking for.`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`This will make my pitch much easier. I really appreciate it!`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Let's move on to the next task!`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`Sounds good?`, ch:'team', author:leaderName, avClass:'av-leader' },
     ].map(m=>({...m, typeDur:td(m.text)}));
   } else {
     return [
-      { gap:800,  text:`I've pulled the ideas together for the pitch.`, ch:'team', author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`Thanks for the update!`, ch:'team', author:peer1Name, avClass:'av-peer1' },
+      { gap:800,  text:`I've read the ideas for the presentation.`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`Thanks for the update.`, ch:'team', author:peer1Name, avClass:'av-peer1' },
       { gap:1000, text:`Awesome!`, ch:'team', author:peer2Name, avClass:'av-peer2' },
-      { gap:1500, text:`Hey <span class="mention">@${u}</span>`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`The taglines were exactly what I was looking for.`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`This will make my pitch much easier. I really appreciate it!`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
+      { gap:1500, text:`Hey <span class="mention">@${u}</span>, I'd like to thank you for the help.`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`The taglines were really helpful for the presentation.`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Let's move on to the next task!`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`Sounds good?`, ch:'team', author:leaderName, avClass:'av-leader' },
     ].map(m=>({...m, typeDur:td(m.text)}));
   }
 }
@@ -1174,7 +1171,34 @@ function handleManipKey(e){
   if(!inputUnlocked) return;
   const input=document.getElementById('manip-chat-input');
   const text=input.value.trim();
-  if(text){ renderManipMsg({author:participantName,avClass:'av-you',isYou:true,text}); chat2Messages.push(text); input.value=''; }
+  if(text){
+    renderManipMsg({author:participantName,avClass:'av-you',isYou:true,text});
+    chat2Messages.push(text);
+    input.value='';
+    // 첫 답변 시 sim_done 푸쉬
+    if(chat2Messages.length===1){
+      saveEmbedded('condition',CONDITION);
+      saveEmbedded('username',participantName);
+      saveEmbedded('report_text',taskText);
+      saveEmbedded('task_duration_sec',taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0);
+      saveEmbedded('chat1_messages',chat1Messages.join(' ||| '));
+      saveEmbedded('chat2_messages',chat2Messages.join(' ||| '));
+      saveEmbedded('sim_complete','1');
+      try{
+        window.parent.postMessage({
+          type:'sim_data',
+          username:participantName,
+          condition:CONDITION,
+          report_text:taskText,
+          task_duration_sec:taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0,
+          chat1_messages:chat1Messages.join(' ||| '),
+          chat2_messages:chat2Messages.join(' ||| '),
+          sim_complete:'1'
+        },'*');
+        window.parent.postMessage('sim_done','*');
+      }catch(e){}
+    }
+  }
 }
 
 // ═══════════════════════════════════════
