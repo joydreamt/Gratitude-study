@@ -1111,27 +1111,6 @@ function runManipMessages(msgs,idx){
   if(idx>=msgs.length){
     tr.classList.remove('visible');
     document.getElementById('manip-chat-input').focus();
-    saveEmbedded('condition',CONDITION);
-    saveEmbedded('username',participantName);
-    saveEmbedded('report_text',taskText);
-    saveEmbedded('task_duration_sec',taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0);
-    saveEmbedded('chat1_messages',chat1Messages.join(' ||| '));
-    saveEmbedded('chat2_messages',chat2Messages.join(' ||| '));
-    saveEmbedded('sim_complete','1');
-    // postMessage로 모든 값 한번에 전달
-    try{
-      window.parent.postMessage({
-        type: 'sim_data',
-        username: participantName,
-        condition: CONDITION,
-        report_text: taskText,
-        task_duration_sec: taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0,
-        chat1_messages: chat1Messages.join(' ||| '),
-        chat2_messages: chat2Messages.join(' ||| '),
-        sim_complete: '1'
-      }, '*');
-      window.parent.postMessage('sim_done', '*');
-    }catch(e){}
     return;
   }
   const m=msgs[idx];
