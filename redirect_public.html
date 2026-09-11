@@ -417,7 +417,7 @@ body {
 <div class="overlay hidden" id="screen-5" style="justify-content:center;align-items:center;background:rgba(0,0,0,0);">
   <div class="task-modal-wrap" id="task-modal">
     <div>
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#8e8e93;margin-bottom:8px;">Assignment Brief</div>
+      
     </div>
     <div style="background:#fff;border:1px solid #e5e5ea;border-radius:10px;overflow:hidden;">
       <div style="background:linear-gradient(135deg,#0f2d48 0%,#1164a3 100%);padding:10px 16px;display:flex;align-items:center;gap:10px;">
@@ -810,7 +810,7 @@ function startIntroChat(){
   const seq=[
     {author:leaderName, avClass:'av-leader', text:`Hi everyone`},
     {author:peer1Name,  avClass:'av-peer1',  text:`Hi!`},
-    {author:leaderName, avClass:'av-leader', text:`I have an important presentation coming up.`},
+    {author:leaderName, avClass:'av-leader', text:`Got a major presentation coming up.`},
     {author:leaderName, avClass:'av-leader', text:`I need everyone's help!`},
   ];
   const gap=1000;
@@ -867,9 +867,9 @@ function startIntroChat(){
 
   function triggerLeaderResponse(){
     const r1=`Great!`;
-    const r2=`Could you help me come up with a few tagline ideas?`;
-    const r3=`I've included some information about the presentation below.`;
-    const linkHtml=`<a class="task-link" onclick="goToTask()" href="javascript:void(0)"><span>📋</span> View presentation details</a>`;
+    const r2=`Could you come up with a few tagline ideas?`;
+    const r3=`I'll forward you the client's requirements!`;
+    const linkHtml=`<a class="task-link" onclick="goToTask()" href="javascript:void(0)"><span>📋</span> View client's requirements</a>`;
     setTimeout(()=>showTyping(leaderName), 800);
     setTimeout(()=>{ hideTyping(); pushTeamMsg({author:leaderName,avClass:'av-leader',text:r1}); }, 800+td(r1));
     setTimeout(()=>showTyping(leaderName), 800+td(r1)+gap);
@@ -994,13 +994,13 @@ function startWaiting(){
   const bar=document.getElementById('wait-bar');
   const label=document.getElementById('wait-label');
   bar.style.width='0%';
-  label.textContent=leaderName+' is reading through the ideas…';
+  label.textContent='Please wait…';
   const totalMs=8000+Math.random()*4000;
   let pct=0;
   const iv=setInterval(()=>{
     pct+=(100/totalMs)*100;
     bar.style.width=Math.min(pct,100)+'%';
-    if(pct>80) label.textContent=leaderName+' is almost done…';
+    if(pct>80) label.textContent='Almost ready…';
     if(pct>=100){
       clearInterval(iv); bar.style.width='100%';
       label.textContent=leaderName+' is ready. Connecting you now…';
@@ -1065,6 +1065,7 @@ function renderManipMsg(m){
   return row;
 }
 
+let soundsGoodAsked = false;
 function startManipulation(){
   activeChannel='team';
   channelMessages={team:[],leader:[],peer1:[],peer2:[],peer3:[],peer4:[]};
@@ -1084,17 +1085,17 @@ function getManipMessages(){
   const u=participantName;
   if(CONDITION==='public'){
     return [
-      { gap:800,  text:`I've read the ideas for the presentation.`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:800,  text:`Got a chance to look through all the ideas!`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Thanks for the update.`, ch:'team', author:peer1Name, avClass:'av-peer1' },
       { gap:1000, text:`Awesome!`, ch:'team', author:peer2Name, avClass:'av-peer2' },
-      { gap:1000, text:`I'd like to thank <span class="mention">@${u}</span> for the help.`, ch:'team', author:leaderName, avClass:'av-leader' },
-      { gap:1000, text:`The taglines were really helpful for the presentation.`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`I'd like to thank <span class="mention">@${u}</span>!`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:1000, text:`Your taglines were particularly helpful!`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Let's move on to the next task!`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Sounds good?`, ch:'team', author:leaderName, avClass:'av-leader' },
     ].map(m=>({...m, typeDur:td(m.text)}));
   } else {
     return [
-      { gap:800,  text:`I've read the ideas for the presentation.`, ch:'team', author:leaderName, avClass:'av-leader' },
+      { gap:800,  text:`Got a chance to look through all the ideas!`, ch:'team', author:leaderName, avClass:'av-leader' },
       { gap:1000, text:`Thanks for the update.`, ch:'team', author:peer1Name, avClass:'av-peer1' },
       { gap:1000, text:`Awesome!`, ch:'team', author:peer2Name, avClass:'av-peer2' },
       { gap:1500, text:`Hey <span class="mention">@${u}</span>`, ch:'leader', notify:true, author:leaderName, avClass:'av-leader' },
@@ -1122,6 +1123,7 @@ function runManipMessages(msgs,idx){
     tr.classList.remove('visible');
     channelMessages[m.ch]=channelMessages[m.ch]||[];
     channelMessages[m.ch].push(m);
+    if(m.text && m.text.includes('Sounds good?')) soundsGoodAsked=true;
     if(activeChannel===m.ch){
       const row=renderManipMsg(m);
       if(m.reactions){
@@ -1153,28 +1155,36 @@ function handleManipKey(e){
     renderManipMsg({author:participantName,avClass:'av-you',isYou:true,text});
     chat2Messages.push(text);
     input.value='';
-    // 첫 답변 시 sim_done 푸쉬
-    if(chat2Messages.length===1){
-      saveEmbedded('condition',CONDITION);
-      saveEmbedded('username',participantName);
-      saveEmbedded('report_text',taskText);
-      saveEmbedded('task_duration_sec',taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0);
-      saveEmbedded('chat1_messages',chat1Messages.join(' ||| '));
-      saveEmbedded('chat2_messages',chat2Messages.join(' ||| '));
-      saveEmbedded('sim_complete','1');
-      try{
-        window.parent.postMessage({
-          type:'sim_data',
-          username:participantName,
-          condition:CONDITION,
-          report_text:taskText,
-          task_duration_sec:taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0,
-          chat1_messages:chat1Messages.join(' ||| '),
-          chat2_messages:chat2Messages.join(' ||| '),
-          sim_complete:'1'
-        },'*');
-        window.parent.postMessage('sim_done','*');
-      }catch(e){}
+    // Sounds good? 이후 첫 답변 시만 트리거
+    if(soundsGoodAsked && chat2Messages.length===1){
+      // 리더 반응
+      setTimeout(()=>{
+        const reply = `Perfect, let's go!`;
+        renderManipMsg({author:leaderName,avClass:'av-leader',text:reply});
+      }, td(`Sounds good?`)+800);
+      // 5초 후 푸쉬
+      setTimeout(()=>{
+        saveEmbedded('condition',CONDITION);
+        saveEmbedded('username',participantName);
+        saveEmbedded('report_text',taskText);
+        saveEmbedded('task_duration_sec',taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0);
+        saveEmbedded('chat1_messages',chat1Messages.join(' ||| '));
+        saveEmbedded('chat2_messages',chat2Messages.join(' ||| '));
+        saveEmbedded('sim_complete','1');
+        try{
+          window.parent.postMessage({
+            type:'sim_data',
+            username:participantName,
+            condition:CONDITION,
+            report_text:taskText,
+            task_duration_sec:taskStartTime?Math.round((Date.now()-taskStartTime)/1000):0,
+            chat1_messages:chat1Messages.join(' ||| '),
+            chat2_messages:chat2Messages.join(' ||| '),
+            sim_complete:'1'
+          },'*');
+          window.parent.postMessage('sim_done','*');
+        }catch(e){}
+      }, 5000);
     }
   }
 }
