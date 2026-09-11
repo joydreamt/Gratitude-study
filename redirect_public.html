@@ -1066,6 +1066,7 @@ function renderManipMsg(m){
 }
 
 let soundsGoodAsked = false;
+let soundsGoodReplied = false;
 function startManipulation(){
   activeChannel='team';
   channelMessages={team:[],leader:[],peer1:[],peer2:[],peer3:[],peer4:[]};
@@ -1156,7 +1157,8 @@ function handleManipKey(e){
     chat2Messages.push(text);
     input.value='';
     // Sounds good? 이후 첫 답변 시만 트리거
-    if(soundsGoodAsked && chat2Messages.length===1){
+    if(soundsGoodAsked && !soundsGoodReplied){
+      soundsGoodReplied = true;
       // 리더 반응
       setTimeout(()=>{
         const reply = `Perfect, let's go!`;
